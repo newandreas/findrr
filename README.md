@@ -39,7 +39,7 @@ services:
     image: ghcr.io/newandreas/findrr:latest
     restart: unless-stopped
     ports:
-      - "5000:5000"
+      - "6580:6580"
     volumes:
       - ./config:/config
     environment:
@@ -59,7 +59,7 @@ docker compose up -d
 ### Accessing the UI
 
 Open your browser and navigate to:
-`http://YOUR_SERVER_IP:5000`
+`http://YOUR_SERVER_IP:6580`
 
 On the first run, you will be asked to create an **Admin Password**.
 

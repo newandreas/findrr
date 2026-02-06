@@ -4,7 +4,7 @@ services:
     container_name: findrr
     restart: unless-stopped
     ports:
-      - "5000:5000"
+      - "6580:6580"
     volumes:
       - ./config:/config
     environment:

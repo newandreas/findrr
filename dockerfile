@@ -17,8 +17,8 @@ RUN chmod +x /entrypoint.sh && \
     mkdir -p /config && \
     chown -R appuser:appgroup /config /app
 
-EXPOSE 5000
+EXPOSE 6580
 
 ENTRYPOINT ["/entrypoint.sh"]
 
-CMD ["gunicorn", "-w", "1", "--threads", "4", "-b", "0.0.0.0:5000", "--access-logfile", "-", "--error-logfile", "-", "app:app"]
+CMD ["gunicorn", "-w", "1", "--threads", "4", "-b", "0.0.0.0:6580", "--access-logfile", "-", "--error-logfile", "-", "app:app"]
