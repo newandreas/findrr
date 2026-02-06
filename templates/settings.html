@@ -15,7 +15,7 @@
         <h5 class="text-primary mb-3">Server Connection</h5>
         <div class="mb-3">
             <label class="form-label">Plex URL</label>
-            <input type="text" id="plex_url" class="form-control" placeholder="http://192.168.1.100:32400" value="{{ settings.get('plex_url', '') }}">
+            <input type="text" id="plex_url" class="form-control" placeholder="http://192.168.1.100:32400" value="{{ settings.get('plex_url', 'http://192.168.1.100:32400') }}">
         </div>
         <div class="mb-3">
             <label class="form-label">Plex Token</label>
@@ -38,7 +38,7 @@
             <div class="row">
                 <div class="col-md-6 mb-3">
                     <label class="form-label">Subtitle Languages</label>
-                    <input type="text" id="target_languages" class="form-control" placeholder="eng, nor, jpn" value="{{ settings.get('target_languages', 'eng, nor, jpn, unknown') }}">
+                    <input type="text" id="target_languages" class="form-control" placeholder="eng, nor, jpn, unknown" value="{{ settings.get('target_languages', 'eng, nor, jpn, unknown') }}">
                 </div>
                 <div class="col-md-6 mb-3">
                     <label class="form-label">Scan Interval (Seconds)</label>
