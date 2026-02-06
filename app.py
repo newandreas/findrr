@@ -41,18 +41,18 @@ def save_settings(data):
 
 # --- ROUTES ---
 
-@app.route('/')
-@login_required
-def index():
-    settings = load_settings()
-    if not settings.get('plex_url') or not settings.get('plex_token'):
-        return render_template('settings.html', settings=settings, first_run=True)
-    return render_template('index.html')
-
 @app.route('/settings')
 @login_required
 def settings_page():
-    return render_template('settings.html', settings=load_settings(), first_run=False)
+    settings = load_settings()
+    display_settings = settings.copy()
+    
+    if settings.get('plex_token'):
+        # If a token exists, replace it with a mask.
+        # The browser isn't served the plex token.
+        display_settings['plex_token'] = '********'
+    
+    return render_template('settings.html', settings=display_settings, first_run=False)
 
 # --- LOGIN FLOW ---
 
@@ -103,8 +103,6 @@ def logout():
     logout_user()
     return redirect(url_for('login'))
 
-# --- API ROUTES (Protected) ---
-
 @app.route('/api/status')
 @login_required
 def get_status():
@@ -130,14 +128,19 @@ def get_history():
 @app.route('/api/save_settings', methods=['POST'])
 @login_required
 def save_settings_route():
-    data = request.json
-    settings = load_settings()
-    if 'admin_password_hash' in settings:
-        data['admin_password_hash'] = settings['admin_password_hash']
+    new_data = request.json
+    old_settings = load_settings()
     
-    save_settings(data)
-    
+    # Check if the user sent the 'mask' or left it empty.
+    # If they did, we keep the REAL token from the old settings file.
+    if new_data.get('plex_token') == '********' or not new_data.get('plex_token'):
+        new_data['plex_token'] = old_settings.get('plex_token')
 
+    # Preserve the password hash (don't let the UI overwrite it)
+    if 'admin_password_hash' in old_settings:
+        new_data['admin_password_hash'] = old_settings['admin_password_hash']
+    
+    save_settings(new_data)
     scanner.restart_event.set()
     
     return jsonify({'success': True})
@@ -146,4 +149,4 @@ def save_settings_route():
 scanner.start_background_thread()
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
+    app.run(host='0.0.0.0', port=6580)
