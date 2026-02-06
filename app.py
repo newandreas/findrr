@@ -121,13 +121,24 @@ def get_status():
 def test_connection():
     from plexapi.server import PlexServer
     data = request.json
+    
+    # Load existing settings to find the real token if the UI sent a mask
+    current_settings = load_settings() 
+    token = data.get('plex_token')
+    url = data.get('plex_url')
+
+    # If the UI sent the mask, use the actual token from the file
+    if token == '********':
+        token = current_settings.get('plex_token')
+
     try:
-        plex = PlexServer(data.get('plex_url'), data.get('plex_token'))
+        # Use the 'token' variable we just validated
+        plex = PlexServer(url, token)
         libs = [s.title for s in plex.library.sections() if s.type in ['movie', 'show']]
         return jsonify({'success': True, 'libraries': libs})
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
-
+        
 @app.route('/api/history')
 @login_required
 def get_history():
