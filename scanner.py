@@ -175,7 +175,6 @@ def send_immediate_alert(settings, failure_data):
     except Exception as e:
         print(f"Discord Error: {e}")
 
-# --- DEBUG REPORT ---
 def send_discord_report(settings, stats, failures):
     webhook = settings.get('discord_webhook')
     if not webhook:
