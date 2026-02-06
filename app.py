@@ -41,6 +41,14 @@ def save_settings(data):
 
 # --- ROUTES ---
 
+@app.route('/')
+@login_required
+def index():
+    settings = load_settings()
+    if not settings.get('plex_url') or not settings.get('plex_token'):
+        return render_template('settings.html', settings=settings, first_run=True)
+    return render_template('index.html')
+
 @app.route('/settings')
 @login_required
 def settings_page():
