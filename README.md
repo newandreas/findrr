@@ -36,7 +36,7 @@ Create a `docker-compose.yml` file:
 services:
   findrr:
     container_name: findrr
-    image: ghcr.io/newandreas/findrr-of-bad-files:latest
+    image: ghcr.io/newandreas/findrr:latest
     restart: unless-stopped
     ports:
       - "5000:5000"
