@@ -98,12 +98,4 @@ You can configure exactly how much noise Findrr makes:
 4. **Subtitle Test:** If the video passes, it iterates through the subtitle streams matching your requested languages and attempts to burn them in.
 5. **Reporting:**
 * **PASS:** The file fingerprint is saved to the DB.
-* **FAIL:** The file is marked as failed, added to the "Active Failures" list, and a Discord notification is triggered based on your settings.
-
-
-
----
-
-## 📄 License
-
-[MIT](https://www.google.com/search?q=LICENSE)
+* **FAIL:** The file is marked as failed, added to the "Active Failures" list, and a Discord notification is triggered based on your settings
