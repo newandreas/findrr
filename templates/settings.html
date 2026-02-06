@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html data-bs-theme="dark">
+<head>
+    <title>Settings - Findrr of Bad Files</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="container mt-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Configuration</h2>
+        <a href="/" class="btn btn-outline-secondary">Cancel</a>
+    </div>
+
+    <div class="card p-4">
+        <h5 class="text-primary">Server Connection</h5>
+        <div class="mb-3">
+            <label class="form-label">Plex URL</label>
+            <input type="text" id="plex_url" class="form-control" value="{{ settings.get('plex_url', 'http://192.168.1.100:32400') }}">
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Plex Token</label>
+            <input type="text" id="plex_token" class="form-control" value="{{ settings.get('plex_token', '') }}">
+            <small><a href="https://support.plex.tv/articles/204059436-finding-an-authentication-token-x-plex-token/" target="_blank" class="link-info">How to find my token?</a></small>
+        </div>
+        
+        <button onclick="testConnection()" class="btn btn-primary mb-3">Test Connection & Load Libraries</button>
+        <div id="test-result" class="mb-3"></div>
+
+        <div id="library-section" class="d-none">
+            <hr>
+            <h5 class="text-primary">Scan Settings</h5>
+            <div class="mb-3">
+                <label class="form-label">Select Libraries</label>
+                <div id="library-list" class="border p-2 rounded" style="max-height: 200px; overflow-y: auto;"></div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Subtitle Languages</label>
+                    <input type="text" id="target_languages" class="form-control" 
+                           placeholder="e.g. eng, ger, spa, unknown, jpn" 
+                           value="{{ settings.get('target_languages', 'eng, nor, jpn, unknown') }}">
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Scan Interval (Seconds)</label>
+                    <input type="number" id="scan_interval" class="form-control" value="{{ settings.get('scan_interval', 3600) }}">
+                </div>
+            </div>
+            
+            <div class="mb-3">
+                <label class="form-label">Priority Title</label>
+                <input type="text" id="priority_title" class="form-control" placeholder="e.g. Futurama" value="{{ settings.get('priority_title', '') }}">
+            </div>
+
+            <hr>
+            <h5 class="text-primary">Notifications</h5>
+            <div class="mb-3">
+                <label class="form-label">Discord Webhook URL</label>
+                <input type="text" id="discord_webhook" class="form-control" value="{{ settings.get('discord_webhook', '') }}">
+            </div>
+            
+            <div class="mb-3">
+                <label class="form-label">Discord User ID (Optional)</label>
+                <input type="text" id="discord_userid" class="form-control" placeholder="123456789012345678" value="{{ settings.get('discord_userid', '') }}">
+                <div class="form-text">Used for tagging (@User) on faults.</div>
+            </div>
+
+            <div class="card bg-secondary bg-opacity-10 p-3 mb-3">
+                <label class="form-label fw-bold">Notification Rules</label>
+                
+                <div class="form-check form-switch mb-2">
+                    <input class="form-check-input" type="checkbox" id="notify_immediate" {% if settings.get('notify_immediate') %}checked{% endif %}>
+                    <label class="form-check-label" for="notify_immediate">📢 Immediate Alert (Send message as soon as a new fault is found)</label>
+                </div>
+
+                <div class="form-check form-switch mb-2">
+                    <input class="form-check-input" type="checkbox" id="notify_on_failure" {% if settings.get('notify_on_failure', True) %}checked{% endif %}>
+                    <label class="form-check-label" for="notify_on_failure">❌ Summary Report (Faults) (Send each time scan finishes with faults)</label>
+                </div>
+
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="notify_on_success" {% if settings.get('notify_on_success') %}checked{% endif %}>
+                    <label class="form-check-label" for="notify_on_success">✅ Summary Report (Success) (Send summary if scan is 100% clean)</label>
+                </div>
+            </div>
+
+            <button onclick="saveSettings()" class="btn btn-success w-100 mt-3">Save & Start Scanner</button>
+        </div>
+    </div>
+
+    <script>
+        let availableLibraries = [];
+        let savedLibraries = {{ settings.get('libraries', []) | tojson }};
+
+        function testConnection() {
+            const btn = document.querySelector('button');
+            btn.disabled = true;
+            btn.innerText = "Testing...";
+            
+            fetch('/api/test_connection', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    plex_url: document.getElementById('plex_url').value,
+                    plex_token: document.getElementById('plex_token').value
+                })
+            })
+            .then(r => r.json())
+            .then(data => {
+                btn.disabled = false;
+                btn.innerText = "Test Connection & Load Libraries";
+                
+                const resDiv = document.getElementById('test-result');
+                if (data.success) {
+                    resDiv.innerHTML = '<div class="alert alert-success">Connection Successful!</div>';
+                    document.getElementById('library-section').classList.remove('d-none');
+                    
+                    const list = document.getElementById('library-list');
+                    list.innerHTML = '';
+                    data.libraries.forEach(lib => {
+                        const checked = savedLibraries.includes(lib) ? 'checked' : '';
+                        list.innerHTML += `
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="${lib}" id="lib-${lib}" ${checked}>
+                                <label class="form-check-label" for="lib-${lib}">${lib}</label>
+                            </div>`;
+                    });
+                } else {
+                    resDiv.innerHTML = `<div class="alert alert-danger">Error: ${data.error}</div>`;
+                }
+            });
+        }
+
+        function saveSettings() {
+            const selectedLibs = [];
+            document.querySelectorAll('#library-list input:checked').forEach(cb => selectedLibs.push(cb.value));
+
+            const payload = {
+                plex_url: document.getElementById('plex_url').value,
+                plex_token: document.getElementById('plex_token').value,
+                libraries: selectedLibs,
+                scan_interval: parseInt(document.getElementById('scan_interval').value),
+                discord_webhook: document.getElementById('discord_webhook').value,
+                priority_title: document.getElementById('priority_title').value,
+                target_languages: document.getElementById('target_languages').value,
+                discord_userid: document.getElementById('discord_userid').value,
+                notify_immediate: document.getElementById('notify_immediate').checked,
+                notify_on_failure: document.getElementById('notify_on_failure').checked,
+                notify_on_success: document.getElementById('notify_on_success').checked
+            };
+
+            fetch('/api/save_settings', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(payload)
+            }).then(() => {
+                window.location.href = '/';
+            });
+        }
+        
+        if (savedLibraries.length > 0) {
+           testConnection(); 
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,6 @@
+plexapi
+requests
+flask
+flask-login
+gunicorn
+werkzeug

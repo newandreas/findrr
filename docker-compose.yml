@@ -1,0 +1,13 @@
+services:
+  findrr:
+    image: ghcr.io/newandreas/findrr-of-bad-files:latest
+    container_name: findrr
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./config:/config
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - PYTHONUNBUFFERED=1

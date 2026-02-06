@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html data-bs-theme="dark">
+<head>
+    <title>Findrr of Bad Files</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .progress { height: 25px; }
+        .sub-badge { background-color: rgba(var(--bs-info-rgb), 0.2); color: var(--bs-info); padding: 5px 10px; border-radius: 4px; margin-right: 5px; display: inline-block; margin-top: 5px; border: 1px solid rgba(var(--bs-info-rgb), 0.3);}
+        .sub-badge-ignored { background-color: rgba(var(--bs-secondary-rgb), 0.2); color: var(--bs-secondary); padding: 5px 10px; border-radius: 4px; margin-right: 5px; display: inline-block; margin-top: 5px; font-style: italic; border: 1px solid rgba(var(--bs-secondary-rgb), 0.3);}
+        .history-item { font-size: 0.9em; border-left: 4px solid transparent; }
+        .history-pass { border-left-color: var(--bs-success); }
+        .history-fail { border-left-color: var(--bs-danger); }
+        .scrollable-history { max-height: 80vh; overflow-y: auto; }
+    </style>
+</head>
+<body class="container-fluid p-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
+        <h2 class="mb-0">Findrr of Bad Files</h2>
+        <div>
+            <a href="/settings" class="btn btn-outline-light btn-sm">⚙️ Settings</a>
+            <a href="/logout" class="btn btn-outline-danger btn-sm ms-2">Logout</a>
+        </div>
+    </div>
+
+    <div class="row">
+        
+
+        <div class="col-lg-9 ps-lg-4">
+            
+            <div class="card p-4 mb-4 shadow-sm">
+                <h4 id="status-text">Status: Loading...</h4>
+                <div class="d-flex justify-content-between">
+                    <p class="mb-1 fw-bold text-truncate" id="current-file" style="max-width: 70%;">...</p>
+                    <p class="mb-1 text-info" id="current-activity">...</p>
+                </div>
+                <div class="progress mb-3">
+                    <div id="progress-bar" class="progress-bar progress-bar-striped progress-bar-animated bg-info" style="width: 0%">0%</div>
+                </div>
+            </div>
+
+            <div class="row text-center mb-4">
+                <div class="col-md-3">
+                    <div class="card p-3 mb-3">
+                        <h3>🔍 <span id="stat-scanned">0</span></h3>
+                        <small>Scanned</small>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card p-3 mb-3 text-success border-success">
+                        <h3>✅ <span id="stat-passed">0</span></h3>
+                        <small>Passed</small>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card p-3 mb-3 text-danger border-danger">
+                        <h3>❌ <span id="stat-failed">0</span></h3>
+                        <small>Failed</small>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card p-3 mb-3 text-warning border-warning">
+                        <h3>⏩ <span id="stat-skipped">0</span></h3>
+                        <small>Passed & cached in DB</small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <div class="card p-3 h-100 mb-3">
+                        <h6 class="text-success">✅ Verified Subtitles</h6>
+                        <div id="subtitle-stats-container">
+                            <span class="text-muted small">None yet.</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card p-3 h-100 mb-3">
+                        <h6 class="text-secondary">🚫 Ignored Subtitles</h6>
+                        <div id="ignored-stats-container">
+                            <span class="text-muted small">None yet.</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-4">
+                <h5>Active Failures (Current Run)</h5>
+                <ul id="failure-list" class="list-group"></ul>
+            </div>
+        </div>
+		<div class="col-lg-3 border-end">
+            <h5 class="text-muted mb-3">Completed Scan History</h5>
+            <div id="history-list" class="scrollable-history pe-2">
+                <div class="text-center text-muted mt-5">Loading history...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function updateStatus() {
+            // 1. Get Live Status
+            fetch('/api/status')
+                .then(r => r.json())
+                .then(data => {
+                    document.getElementById('status-text').innerText = 'Status: ' + data.status;
+                    document.getElementById('current-file').innerText = data.current_file || 'Waiting...';
+                    document.getElementById('current-activity').innerText = data.current_activity || '';
+                    
+                    const bar = document.getElementById('progress-bar');
+                    bar.style.width = data.progress + '%';
+                    bar.innerText = data.progress + '%';
+
+                    document.getElementById('stat-scanned').innerText = data.scanned;
+                    document.getElementById('stat-passed').innerText = data.passed;
+                    document.getElementById('stat-failed').innerText = data.failed;
+                    document.getElementById('stat-skipped').innerText = data.skipped;
+
+                    function renderBadges(containerId, statsObj, cssClass, emptyMsg) {
+                        const container = document.getElementById(containerId);
+                        const stats = statsObj || {};
+                        if (Object.keys(stats).length > 0) {
+                            container.innerHTML = '';
+                            const sorted = Object.entries(stats).sort((a,b) => b[1] - a[1]);
+                            for (const [lang, count] of sorted) {
+                                container.innerHTML += `<span class="${cssClass}">${lang}: <b>${count}</b></span>`;
+                            }
+                        } else {
+                            container.innerHTML = `<span class="text-muted small">${emptyMsg}</span>`;
+                        }
+                    }
+
+                    renderBadges('subtitle-stats-container', data.subtitle_stats, 'sub-badge', 'No matching subtitles found.');
+                    renderBadges('ignored-stats-container', data.ignored_subtitle_stats, 'sub-badge-ignored', 'No subtitles ignored yet.');
+
+                    const list = document.getElementById('failure-list');
+                    list.innerHTML = '';
+                    data.failures.forEach(f => {
+                        const li = document.createElement('li');
+                        li.className = 'list-group-item list-group-item-danger';
+                        li.innerHTML = `<div class="d-flex justify-content-between">
+                                            <b>${f.title}</b>
+                                            <small>${f.reason}</small>
+                                        </div>
+                                        <small class="text-muted">${f.file}</small>`;
+                        list.appendChild(li);
+                    });
+                });
+
+            fetch('/api/history')
+                .then(r => r.json())
+                .then(history => {
+                    const list = document.getElementById('history-list');
+                    if(history.length === 0) {
+                        list.innerHTML = '<div class="text-muted small text-center mt-4">No complete scans yet.</div>';
+                        return;
+                    }
+                    
+                    list.innerHTML = '';
+                    history.forEach(h => {
+                        const borderClass = h.failed > 0 ? 'history-fail' : 'history-pass';
+                        const badgeClass = h.failed > 0 ? 'bg-danger' : 'bg-success';
+                        const badgeText = h.failed > 0 ? 'Issues Found' : 'Clean';
+
+                        list.innerHTML += `
+                            <div class="card mb-2 p-2 history-item ${borderClass} bg-dark">
+                                <div class="d-flex justify-content-between align-items-start mb-1">
+                                    <small class="fw-bold">${h.timestamp}</small>
+                                    <span class="badge ${badgeClass}" style="font-size: 0.7em">${badgeText}</span>
+                                </div>
+                                <small class="d-block text-muted text-truncate mb-2" title="${h.libraries}">${h.libraries}</small>
+                                <div class="d-flex justify-content-between" style="font-size: 0.8em">
+                                    <span title="Scanned">🔍 ${h.scanned}</span>
+                                    <span title="Passed" class="text-success">✅ ${h.passed}</span>
+                                    <span title="Failed" class="text-danger">❌ ${h.failed}</span>
+                                    <span title="Passed & cached in DB" class="text-warning">⏩ ${h.skipped}</span>
+                                </div>
+                            </div>
+                        `;
+                    });
+                });
+        }
+        setInterval(updateStatus, 2000);
+        updateStatus();
+    </script>
+</body>
+</html>
