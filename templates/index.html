@@ -2,6 +2,7 @@
 <html data-bs-theme="dark">
 <head>
     <title>Findrr of Bad Files</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         .progress { height: 25px; }
@@ -10,27 +11,25 @@
         .history-item { font-size: 0.9em; border-left: 4px solid transparent; }
         .history-pass { border-left-color: var(--bs-success); }
         .history-fail { border-left-color: var(--bs-danger); }
-        .scrollable-history { max-height: 80vh; overflow-y: auto; }
+        /* Adjusted max-height for mobile so history doesn't push everything else too far down. */
+        .scrollable-history { max-height: 60vh; overflow-y: auto; }
     </style>
 </head>
-<body class="container-fluid p-4">
-    <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
-        <h2 class="mb-0">Findrr of Bad Files</h2>
-        <div>
-            <a href="/settings" class="btn btn-outline-light btn-sm">⚙️ Settings</a>
-            <a href="/logout" class="btn btn-outline-danger btn-sm ms-2">Logout</a>
+<body class="container-fluid p-3 p-md-4"> <div class="d-flex flex-column flex-sm-row justify-content-between align-items-center mb-4 border-bottom pb-3">
+        <h2 class="mb-3 mb-sm-0">Findrr of Bad Files</h2>
+        <div class="w-100 w-sm-auto d-flex justify-content-between">
+            <a href="/settings" class="btn btn-outline-light btn-sm px-3">⚙️ Settings</a>
+            <a href="/logout" class="btn btn-outline-danger btn-sm ms-2 px-3">Logout</a>
         </div>
     </div>
 
     <div class="row">
-        
-
         <div class="col-lg-9 ps-lg-4">
             
-            <div class="card p-4 mb-4 shadow-sm">
+            <div class="card p-3 p-md-4 mb-4 shadow-sm">
                 <h4 id="status-text">Status: Loading...</h4>
-                <div class="d-flex justify-content-between">
-                    <p class="mb-1 fw-bold text-truncate" id="current-file" style="max-width: 70%;">...</p>
+                <div class="d-flex flex-column flex-md-row justify-content-between mb-2">
+                    <p class="mb-1 fw-bold text-truncate" id="current-file" style="max-width: 100%;">...</p>
                     <p class="mb-1 text-info" id="current-activity">...</p>
                 </div>
                 <div class="progress mb-3">
@@ -38,44 +37,43 @@
                 </div>
             </div>
 
-            <div class="row text-center mb-4">
-                <div class="col-md-3">
-                    <div class="card p-3 mb-3">
+            <div class="row text-center mb-2">
+                <div class="col-6 col-md-3 mb-3">
+                    <div class="card p-2 p-md-3 h-100">
                         <h3>🔍 <span id="stat-scanned">0</span></h3>
                         <small>Scanned</small>
                     </div>
                 </div>
-                <div class="col-md-3">
-                    <div class="card p-3 mb-3 text-success border-success">
+                <div class="col-6 col-md-3 mb-3">
+                    <div class="card p-2 p-md-3 h-100 text-success border-success">
                         <h3>✅ <span id="stat-passed">0</span></h3>
                         <small>Passed</small>
                     </div>
                 </div>
-                <div class="col-md-3">
-                    <div class="card p-3 mb-3 text-danger border-danger">
+                <div class="col-6 col-md-3 mb-3">
+                    <div class="card p-2 p-md-3 h-100 text-danger border-danger">
                         <h3>❌ <span id="stat-failed">0</span></h3>
                         <small>Failed</small>
                     </div>
                 </div>
-                <div class="col-md-3">
-                    <div class="card p-3 mb-3 text-warning border-warning">
+                <div class="col-6 col-md-3 mb-3">
+                    <div class="card p-2 p-md-3 h-100 text-warning border-warning">
                         <h3>⏩ <span id="stat-skipped">0</span></h3>
-                        <small>Passed & cached in DB</small>
-                    </div>
+                        <small class="d-block d-md-inline">Skipped</small> </div>
                 </div>
             </div>
 
             <div class="row mb-4">
-                <div class="col-md-6">
-                    <div class="card p-3 h-100 mb-3">
+                <div class="col-md-6 mb-3">
+                    <div class="card p-3 h-100">
                         <h6 class="text-success">✅ Verified Subtitles</h6>
                         <div id="subtitle-stats-container">
                             <span class="text-muted small">None yet.</span>
                         </div>
                     </div>
                 </div>
-                <div class="col-md-6">
-                    <div class="card p-3 h-100 mb-3">
+                <div class="col-md-6 mb-3">
+                    <div class="card p-3 h-100">
                         <h6 class="text-secondary">🚫 Ignored Subtitles</h6>
                         <div id="ignored-stats-container">
                             <span class="text-muted small">None yet.</span>
@@ -84,12 +82,13 @@
                 </div>
             </div>
 
-            <div class="mt-4">
+            <div class="mt-4 mb-5">
                 <h5>Active Failures (Current Run)</h5>
                 <ul id="failure-list" class="list-group"></ul>
             </div>
         </div>
-		<div class="col-lg-3 border-end">
+
+        <div class="col-lg-3 border-top border-lg-0 pt-4 pt-lg-0 border-start-lg ps-lg-4">
             <h5 class="text-muted mb-3">Completed Scan History</h5>
             <div id="history-list" class="scrollable-history pe-2">
                 <div class="text-center text-muted mt-5">Loading history...</div>

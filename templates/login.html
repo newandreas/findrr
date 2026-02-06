@@ -1,35 +1,37 @@
 <!DOCTYPE html>
 <html data-bs-theme="dark">
 <head>
-    <title>Login - Findrr of Bad Files</title>
+    <title>Login - Findrr</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        body { display: flex; align-items: center; justify-content: center; height: 100vh; }
-        .card { width: 100%; max-width: 400px; }
+        /* 'vh-100' makes the body exactly the height of the screen. */
+        body { display: flex; align-items: center; justify-content: center; min-height: 100vh; }
+        /* Card width is 90% of screen on mobile, maxes out at 400px. */
+        .card { width: 90%; max-width: 400px; }
     </style>
 </head>
-<body>
-    <div class="card p-4 shadow-lg">
+<body class="bg-dark px-3"> <div class="card p-4 shadow-lg">
         <h3 class="text-center mb-4">🔐 {{ title }}</h3>
         
         {% with messages = get_flashed_messages() %}
             {% if messages %}
-                <div class="alert alert-danger p-2">{{ messages[0] }}</div>
+                <div class="alert alert-danger p-2 small">{{ messages[0] }}</div>
             {% endif %}
         {% endwith %}
 
         <form method="POST">
             <div class="mb-3">
                 <label class="form-label">Password</label>
-                <input type="password" name="password" class="form-control" required autofocus>
+                <input type="password" name="password" class="form-control form-control-lg" required autofocus>
             </div>
             {% if is_setup %}
             <div class="mb-3">
                 <label class="form-label">Confirm Password</label>
-                <input type="password" name="confirm_password" class="form-control" required>
+                <input type="password" name="confirm_password" class="form-control form-control-lg" required>
             </div>
             {% endif %}
-            <button type="submit" class="btn btn-primary w-100">{{ btn_text }}</button>
+            <button type="submit" class="btn btn-primary w-100 py-2 mt-2">{{ btn_text }}</button>
         </form>
     </div>
 </body>
