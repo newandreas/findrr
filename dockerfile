@@ -1,9 +1,9 @@
-FROM python:3.14-slim
+FROM python:alpine
 
-RUN apt-get update && apt-get install -y gosu && rm -rf /var/lib/apt/lists/*
+RUN apk add --no-cache su-exec
 
-RUN addgroup --system --gid 1000 appgroup && \
-    adduser --system --uid 1000 --ingroup appgroup --home /home/appuser appuser
+RUN addgroup -S -g 1000 appgroup && \
+    adduser -S -u 1000 -G appgroup -h /home/appuser appuser
 
 WORKDIR /app
 
