@@ -1,10 +1,17 @@
-# Findrr of Bad Files
+# Findrr
 
-**Findrr of Bad Files** is a self-hosted health check tool for Plex Media Server. It acts as a virtual client, attempting to transcode and stream every item in your library to ensure file integrity.
+<img width="128px" src="./logo/256 drop shadow.png" alt="Icon of CPU with detective hat and magnifying glass"></img> 
 
-This app was coded with an LLM/AI (Google Gemini), I am not a professional coder. Don't trust the administrator password to be safe enough to expose the WebUI to the internet without a reverse proxy with authentication on top!
+**Findrr** is a self-hosted health check tool for Plex Media Server. It acts as a virtual client, attempting to transcode and stream every item in your library to that it will play.
+
+> [!WARNING]
+> This app was coded with the help of LLMs, I am not a professional coder. Don't trust the administrator password to be safe enough to expose the WebUI to the internet without a reverse proxy with authentication on top!
 
 Unlike simpler video integrity checks using ffmpeg, Findrr forces Plex to transcode the video and burn in subtitles, catching stuff that only appears during real user playback.
+So far Findrr has caught files that crash the transcoder by:
+* Being interlaced in a strange way
+* Using WEBVTT subtitles
+* Dolby Vision Profile 5 which isn't supported by Plex
 
 ---
 
@@ -26,7 +33,7 @@ Unlike simpler video integrity checks using ffmpeg, Findrr forces Plex to transc
 
 ---
 
-## 🛠️ Installation
+## Installation
 
 ### Docker Compose
 
@@ -65,7 +72,7 @@ On the first run, you will be asked to create an **Admin Password**.
 
 ---
 
-## ⚙️ Configuration
+## Configuration
 
 Once logged in, navigate to **Settings** to configure Findrr.
 
