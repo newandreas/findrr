@@ -43,34 +43,11 @@ jobs:
             ${{ env.IMAGE_NAME }}:latest
             ${{ env.IMAGE_NAME }}:${{ github.sha }}
 
-      - name: Sync README to Docker Hub repository description
+      - name: Update Docker Hub Description
         if: github.event_name == 'push'
-        env:
-          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
-          DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
-        run: |
-          python3 - <<'PY'
-          import os, json, urllib.request, sys
-          USERNAME = os.environ.get('DOCKERHUB_USERNAME')
-          PASSWORD = os.environ.get('DOCKERHUB_TOKEN')
-          if not USERNAME or not PASSWORD:
-              print('DOCKERHUB_USERNAME or DOCKERHUB_TOKEN not set, skipping README sync')
-              sys.exit(0)
-          login_data = json.dumps({'username': USERNAME, 'password': PASSWORD}).encode('utf-8')
-          req = urllib.request.Request('https://hub.docker.com/v2/users/login/', data=login_data, headers={'Content-Type': 'application/json'})
-          resp = urllib.request.urlopen(req).read()
-          token = json.loads(resp.decode('utf-8')).get('token')
-          if not token:
-              print('Failed to obtain Docker Hub token, skipping README sync')
-              sys.exit(0)
-          try:
-              full_desc = open('README.md', 'r', encoding='utf-8').read()
-          except FileNotFoundError:
-              print('README.md not found, skipping sync')
-              sys.exit(0)
-          patch_data = json.dumps({'full_description': full_desc}).encode('utf-8')
-          url = f'https://hub.docker.com/v2/repositories/{USERNAME}/findrr/'
-          req2 = urllib.request.Request(url, data=patch_data, headers={'Content-Type':'application/json', 'Authorization': f'JWT {token}'}, method='PATCH')
-          resp2 = urllib.request.urlopen(req2)
-          print('Docker Hub README sync status:', resp2.getcode())
-          PY
+        uses: peter-evans/dockerhub-description@v4
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          repository: ${{ env.IMAGE_NAME }}
+          readme-filepath: ./README.md
