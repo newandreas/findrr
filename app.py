@@ -1,7 +1,7 @@
 import os
 import json
 import threading
-from flask import Flask, render_template, request, jsonify, redirect, url_for, flash
+from flask import Flask, render_template, request, jsonify, redirect, url_for, flash, send_from_directory
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 import scanner
@@ -143,6 +143,12 @@ def test_connection():
 @login_required
 def get_history():
     return jsonify(scanner.get_recent_history())
+
+
+# Serve favicon files placed under templates/favicon at /favicon/*
+@app.route('/favicon/<path:filename>')
+def favicon_files(filename):
+    return send_from_directory(os.path.join(app.root_path, 'templates', 'favicon'), filename)
 
 @app.route('/api/save_settings', methods=['POST'])
 @login_required
