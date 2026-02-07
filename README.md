@@ -1,6 +1,6 @@
 # Findrr
 
-<img width="128px" src="./logo/256 drop shadow.png" alt="Icon of CPU with detective hat and magnifying glass"></img> 
+<img width="128px" src="https://github.com/newandreas/findrr/blob/main/logo/256%20drop%20shadow.png" alt="Icon of CPU with detective hat and magnifying glass"></img> 
 
 **Findrr** is a self-hosted health check tool for Plex Media Server. It acts as a virtual client, attempting to transcode and stream every item in your library to that it will play.
 
