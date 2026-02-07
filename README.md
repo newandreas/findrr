@@ -36,7 +36,7 @@ Create a `docker-compose.yml` file:
 services:
   findrr:
     container_name: findrr
-    image: ghcr.io/newandreas/findrr:latest
+    image: newandreas/findrr:latest
     restart: unless-stopped
     ports:
       - "6580:6580"

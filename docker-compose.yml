@@ -1,6 +1,6 @@
 services:
   findrr:
-    image: ghcr.io/newandreas/findrr-of-bad-files:latest
+    image: newandreas/findrr:latest
     container_name: findrr
     restart: unless-stopped
     ports:
