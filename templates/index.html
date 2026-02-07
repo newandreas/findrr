@@ -63,8 +63,8 @@
                 </div>
                 <div class="col-6 col-md-3 mb-3">
                     <div class="card p-2 p-md-3 h-100 text-warning border-warning">
-                        <h3>⏩ <span id="stat-skipped">0</span></h3>
-                        <small class="d-block d-md-inline">Skipped</small> </div>
+                        <h3>⏩ <span id="stat-passed-cached">0</span></h3>
+                        <small class="d-block d-md-inline">Passed & Cached</small> </div>
                 </div>
             </div>
 
@@ -103,7 +103,6 @@
 
     <script>
         function updateStatus() {
-            // 1. Get Live Status
             fetch('/api/status')
                 .then(r => r.json())
                 .then(data => {
@@ -118,7 +117,7 @@
                     document.getElementById('stat-scanned').innerText = data.scanned;
                     document.getElementById('stat-passed').innerText = data.passed;
                     document.getElementById('stat-failed').innerText = data.failed;
-                    document.getElementById('stat-skipped').innerText = data.skipped;
+                    document.getElementById('stat-passed-cached').innerText = data.skipped;
 
                     function renderBadges(containerId, statsObj, cssClass, emptyMsg) {
                         const container = document.getElementById(containerId);
@@ -177,7 +176,7 @@
                                     <span title="Scanned">🔍 ${h.scanned}</span>
                                     <span title="Passed" class="text-success">✅ ${h.passed}</span>
                                     <span title="Failed" class="text-danger">❌ ${h.failed}</span>
-                                    <span title="Passed & cached in DB" class="text-warning">⏩ ${h.skipped}</span>
+                                    <span title="Passed & Cached" class="text-warning">⏩ ${h.skipped}</span>
                                 </div>
                             </div>
                         `;

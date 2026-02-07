@@ -1,6 +1,6 @@
 # Findrr
 
-<img width="128px" src="https://github.com/newandreas/findrr/blob/main/logo/256%20drop%20shadow.png" alt="Icon of CPU with detective hat and magnifying glass"></img> 
+<img width="128px" src="https://raw.githubusercontent.com/newandreas/findrr/refs/heads/main/logo/256%20drop%20shadow.png" alt="Icon of CPU with detective hat and magnifying glass"></img>
 
 **Findrr** is a self-hosted health check tool for Plex Media Server. It acts as a virtual client, attempting to transcode and stream every item in your library to that it will play.
 
@@ -100,7 +100,7 @@ You can configure exactly how much noise Findrr makes:
 ##  How It Works
 
 1. **Fingerprinting:** When the scanner starts, it looks at the file size and modification time of your media.
-2. **Database Check:** It checks `history.db`. If the file matches a previous "PASS" record, it is skipped (shown as "⏩ Passed & cached in DB" in UI).
+2. **Database Check:** It checks `history.db`. If the file matches a previous "PASS" record, it is skipped (shown as "⏩ Passed & Cached" in UI.)
 3. **Video Test:** If the file is new or changed, it requests a transcoded stream from Plex.
 4. **Subtitle Test:** If the video passes, it iterates through the subtitle streams matching your requested languages and attempts to burn them in.
 5. **Reporting:**
