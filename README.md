@@ -11,7 +11,7 @@ Unlike simpler video integrity checks using ffmpeg, Findrr forces Plex to transc
 So far Findrr has caught files that crash the transcoder by:
 * Being interlaced in a strange way
 * Using WEBVTT subtitles
-* Dolby Vision Profile 5 which isn't supported by Plex
+* Dolby Vision Profile 5 which isn't supported by Plex Transcoder
 
 ---
 
