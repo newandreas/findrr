@@ -1,7 +1,7 @@
 <!DOCTYPE html>
-<html data-bs-theme="dark">
+<html data-bs-theme="dark" lang="en">
 <head>
-    <title>Findrr of Bad Files</title>
+    <title>{{ _('Findrr of Bad Files') }}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="icon" type="image/png" href="/favicon/favicon-96x96.png" sizes="96x96" />
@@ -20,19 +20,29 @@
         .scrollable-history { max-height: 60vh; overflow-y: auto; }
     </style>
 </head>
-<body class="container-fluid p-3 p-md-4"> <div class="d-flex flex-column flex-sm-row justify-content-between align-items-center mb-4 border-bottom pb-3">
+<body class="container-fluid p-3 p-md-4">
+    <div class="d-flex flex-column flex-sm-row justify-content-between align-items-center mb-4 border-bottom pb-3">
         <h2 class="mb-3 mb-sm-0">Findrr of Bad Files</h2>
         <div class="w-100 w-sm-auto d-flex justify-content-between">
-            <a href="/settings" class="btn btn-outline-light btn-sm px-3">⚙️ Settings</a>
-            {% if auth_enabled %}<a href="/logout" class="btn btn-outline-danger btn-sm ms-2 px-3">Logout</a>{% endif %}
+            <div class="dropdown">
+                <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                    🌐 {{ _('Language') }}
+                </button>
+                <ul class="dropdown-menu dropdown-menu-dark">
+                    {% for lang_code, lang_name in languages.items() %}
+                    <li><a class="dropdown-item" href="#" onclick="setLanguage('{{ lang_code }}')">{{ lang_name }}</a></li>
+                    {% endfor %}
+                </ul>
+            </div>
+            <a href="/settings" class="btn btn-outline-light btn-sm px-3 ms-2">⚙️ {{ _('Settings') }}</a>
+            {% if auth_enabled %}<a href="/logout" class="btn btn-outline-danger btn-sm ms-2 px-3">{{ _('Logout') }}</a>{% endif %}
         </div>
     </div>
 
     <div class="row">
         <div class="col-lg-9 ps-lg-4">
-            
             <div class="card p-3 p-md-4 mb-4 shadow-sm">
-                <h4 id="status-text">Status: Loading...</h4>
+                <h4 id="status-text">{{ _('Status') }}: {{ _('Loading') }}...</h4>
                 <div class="d-flex flex-column flex-md-row justify-content-between mb-2">
                     <p class="mb-1 fw-bold text-truncate" id="current-file" style="max-width: 100%;">...</p>
                     <p class="mb-1 text-info" id="current-activity">...</p>
@@ -46,68 +56,104 @@
                 <div class="col-6 col-md-3 mb-3">
                     <div class="card p-2 p-md-3 h-100">
                         <h3>🔍 <span id="stat-scanned">0</span></h3>
-                        <small>Scanned</small>
+                        <small>{{ _('Scanned') }}</small>
                     </div>
                 </div>
                 <div class="col-6 col-md-3 mb-3">
                     <div class="card p-2 p-md-3 h-100 text-success border-success">
                         <h3>✅ <span id="stat-passed">0</span></h3>
-                        <small>Passed</small>
+                        <small>{{ _('Passed') }}</small>
                     </div>
                 </div>
                 <div class="col-6 col-md-3 mb-3">
                     <div class="card p-2 p-md-3 h-100 text-danger border-danger">
                         <h3>❌ <span id="stat-failed">0</span></h3>
-                        <small>Failed</small>
+                        <small>{{ _('Failed') }}</small>
                     </div>
                 </div>
                 <div class="col-6 col-md-3 mb-3">
                     <div class="card p-2 p-md-3 h-100 text-warning border-warning">
                         <h3>⏩ <span id="stat-passed-cached">0</span></h3>
-                        <small class="d-block d-md-inline">Passed & Cached</small> </div>
+                        <small class="d-block d-md-inline">{{ _('Passed & Cached') }}</small>
+                    </div>
                 </div>
             </div>
 
             <div class="row mb-4">
                 <div class="col-md-6 mb-3">
                     <div class="card p-3 h-100">
-                        <h6 class="text-success">✅ Verified Subtitles</h6>
+                        <h6 class="text-success">✅ {{ _('Verified Subtitles') }}</h6>
                         <div id="subtitle-stats-container">
-                            <span class="text-muted small">None yet.</span>
+                            <span class="text-muted small">{{ _('None yet') }}.</span>
                         </div>
                     </div>
                 </div>
                 <div class="col-md-6 mb-3">
                     <div class="card p-3 h-100">
-                        <h6 class="text-secondary">🚫 Ignored Subtitles</h6>
+                        <h6 class="text-secondary">🚫 {{ _('Ignored Subtitles') }}</h6>
                         <div id="ignored-stats-container">
-                            <span class="text-muted small">None yet.</span>
+                            <span class="text-muted small">{{ _('None yet') }}.</span>
                         </div>
                     </div>
                 </div>
             </div>
 
             <div class="mt-4 mb-5">
-                <h5>Active Failures (Current Run)</h5>
+                <h5>{{ _('Active Failures (Current Run)') }}</h5>
                 <ul id="failure-list" class="list-group"></ul>
             </div>
         </div>
 
         <div class="col-lg-3 border-top border-lg-0 pt-4 pt-lg-0 border-start-lg ps-lg-4">
-            <h5 class="text-muted mb-3">Completed Scan History</h5>
+            <h5 class="text-muted mb-3">{{ _('Completed Scan History') }}</h5>
             <div id="history-list" class="scrollable-history pe-2">
-                <div class="text-center text-muted mt-5">Loading history...</div>
+                <div class="text-center text-muted mt-5">{{ _('Loading history') }}...</div>
             </div>
         </div>
     </div>
 
     <script>
+        const i18n = {
+            'status': '{{ _("Status") }}',
+            'loading': '{{ _("Loading") }}',
+            'waiting': '{{ _("Waiting") }}',
+            'scanned': '{{ _("Scanned") }}',
+            'passed': '{{ _("Passed") }}',
+            'failed': '{{ _("Failed") }}',
+            'skipped': '{{ _("Passed & Cached") }}',
+            'no_matching': '{{ _("No matching subtitles found") }}',
+            'no_ignored': '{{ _("No subtitles ignored yet") }}',
+            'issues_found': '{{ _("Issues Found") }}',
+            'clean': '{{ _("Clean") }}',
+            'no_complete': '{{ _("No complete scans yet") }}'
+        };
+
+        // Translation map for API status values
+        const statusTranslations = {
+            'Idle': '{{ _("Idle") }}',
+            'Scanning': '{{ _("Scanning") }}',
+            'Complete': '{{ _("Complete") }}',
+            'Error': '{{ _("Error") }}',
+            'Sleeping': '{{ _("Sleeping") }}',
+            'Waiting': '{{ _("Waiting") }}',
+            'Loading': '{{ _("Loading") }}'
+        };
+
+        function translateStatus(status) {
+            return statusTranslations[status] || status;
+        }
+
+        function setLanguage(lang) {
+            fetch(`/api/set_language/${lang}`, { method: 'POST' })
+                .then(() => location.reload());
+        }
+
         function updateStatus() {
             fetch('/api/status')
                 .then(r => r.json())
                 .then(data => {
-                    document.getElementById('status-text').innerText = 'Status: ' + data.status;
-                    document.getElementById('current-file').innerText = data.current_file || 'Waiting...';
+                    document.getElementById('status-text').innerText = i18n.status + ': ' + translateStatus(data.status);
+                    document.getElementById('current-file').innerText = data.current_file || i18n.waiting;
                     document.getElementById('current-activity').innerText = data.current_activity || '';
                     
                     const bar = document.getElementById('progress-bar');
@@ -133,8 +179,8 @@
                         }
                     }
 
-                    renderBadges('subtitle-stats-container', data.subtitle_stats, 'sub-badge', 'No matching subtitles found.');
-                    renderBadges('ignored-stats-container', data.ignored_subtitle_stats, 'sub-badge-ignored', 'No subtitles ignored yet.');
+                    renderBadges('subtitle-stats-container', data.subtitle_stats, 'sub-badge', i18n.no_matching);
+                    renderBadges('ignored-stats-container', data.ignored_subtitle_stats, 'sub-badge-ignored', i18n.no_ignored);
 
                     const list = document.getElementById('failure-list');
                     list.innerHTML = '';
@@ -155,7 +201,7 @@
                 .then(history => {
                     const list = document.getElementById('history-list');
                     if(history.length === 0) {
-                        list.innerHTML = '<div class="text-muted small text-center mt-4">No complete scans yet.</div>';
+                        list.innerHTML = `<div class="text-muted small text-center mt-4">${i18n.no_complete}.</div>`;
                         return;
                     }
                     
@@ -163,7 +209,7 @@
                     history.forEach(h => {
                         const borderClass = h.failed > 0 ? 'history-fail' : 'history-pass';
                         const badgeClass = h.failed > 0 ? 'bg-danger' : 'bg-success';
-                        const badgeText = h.failed > 0 ? 'Issues Found' : 'Clean';
+                        const badgeText = h.failed > 0 ? i18n.issues_found : i18n.clean;
 
                         list.innerHTML += `
                             <div class="card mb-2 p-2 history-item ${borderClass} bg-dark">
@@ -173,10 +219,10 @@
                                 </div>
                                 <small class="d-block text-muted text-truncate mb-2" title="${h.libraries}">${h.libraries}</small>
                                 <div class="d-flex justify-content-between" style="font-size: 0.8em">
-                                    <span title="Scanned">🔍 ${h.scanned}</span>
-                                    <span title="Passed" class="text-success">✅ ${h.passed}</span>
-                                    <span title="Failed" class="text-danger">❌ ${h.failed}</span>
-                                    <span title="Passed & Cached" class="text-warning">⏩ ${h.skipped}</span>
+                                    <span title="${i18n.scanned}">🔍 ${h.scanned}</span>
+                                    <span title="${i18n.passed}" class="text-success">✅ ${h.passed}</span>
+                                    <span title="${i18n.failed}" class="text-danger">❌ ${h.failed}</span>
+                                    <span title="${i18n.skipped}" class="text-warning">⏩ ${h.skipped}</span>
                                 </div>
                             </div>
                         `;
@@ -186,5 +232,7 @@
         setInterval(updateStatus, 2000);
         updateStatus();
     </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

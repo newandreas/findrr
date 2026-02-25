@@ -4,12 +4,35 @@ import threading
 from functools import wraps
 from flask import Flask, render_template, request, jsonify, redirect, url_for, flash, send_from_directory
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
+from flask_babel import Babel, gettext, ngettext, lazy_gettext as _l
 from werkzeug.security import generate_password_hash, check_password_hash
 import scanner
+
+# Version
+__version__ = '1.0.1'
 
 app = Flask(__name__)
 
 app.secret_key = os.getenv('SECRET_KEY', os.urandom(24))
+
+# Supported languages
+LANGUAGES = {
+    'en': 'English',
+    'es': 'Español',
+    'fr': 'Français',
+    'de': 'Deutsch',
+    'it': 'Italiano',
+    'pt': 'Português',
+    'ru': 'Русский',
+    'ja': '日本語',
+    'zh': '中文',
+    'ko': '한국어',
+    'ar': 'العربية',
+    'no': 'Norsk',
+}
+
+# Initialize Babel without app (will be bound later with init_app)
+babel = Babel()
 
 CONFIG_DIR = '/config'
 CONFIG_PATH = os.path.join(CONFIG_DIR, 'settings.json')
@@ -61,9 +84,39 @@ def optional_login_required(f):
 
 @app.before_request
 def before_request():
-    """Auto-login user if auth is disabled."""
+    """Handle locale selection and auto-login for disabled auth."""
+    from flask import g
+    
+    # Set locale based on settings or browser preference
+    settings = load_settings()
+    if settings.get('language') and settings.get('language') in LANGUAGES:
+        locale = settings.get('language')
+    else:
+        locale = request.accept_languages.best_match(LANGUAGES.keys()) or 'en'
+    g.locale = locale
+    
+    # Auto-login user if auth is disabled
     if is_auth_disabled() and not current_user.is_authenticated:
         login_user(User(1))
+
+# Define locale selector function
+def get_locale():
+    """Get locale from settings or browser preference."""
+    from flask import g
+    if hasattr(g, 'locale'):
+        return g.locale
+    return 'en'
+
+# Initialize Babel with app and locale selector
+babel.init_app(app, locale_selector=get_locale)
+
+# Mark common status strings for translation (used in API responses)
+# These are extracted by pybabel to ensure they're available in all languages
+_l("Idle")
+_l("Scanning")
+_l("Complete")
+_l("Error")
+_l("Sleeping")
 
 # --- ROUTES ---
 
@@ -72,8 +125,8 @@ def before_request():
 def index():
     settings = load_settings()
     if not settings.get('plex_url') or not settings.get('plex_token'):
-        return render_template('settings.html', settings=settings, first_run=True, auth_enabled=not is_auth_disabled())
-    return render_template('index.html', auth_enabled=not is_auth_disabled())
+        return render_template('settings.html', settings=settings, first_run=True, auth_enabled=not is_auth_disabled(), languages=LANGUAGES)
+    return render_template('index.html', auth_enabled=not is_auth_disabled(), languages=LANGUAGES)
 
 @app.route('/settings')
 @optional_login_required
@@ -86,7 +139,7 @@ def settings_page():
         # The browser isn't served the plex token.
         display_settings['plex_token'] = '********'
     
-    return render_template('settings.html', settings=display_settings, first_run=False, auth_enabled=not is_auth_disabled())
+    return render_template('settings.html', settings=display_settings, first_run=False, auth_enabled=not is_auth_disabled(), languages=LANGUAGES)
 
 # --- LOGIN FLOW ---
 
@@ -156,6 +209,19 @@ def setup_auth():
 def logout():
     logout_user()
     return redirect(url_for('login'))
+
+@app.route('/api/set_language/<lang>', methods=['POST'])
+@optional_login_required
+def set_language(lang):
+    """Set the user's preferred language."""
+    if lang not in LANGUAGES:
+        return jsonify({'success': False, 'error': 'Invalid language'}), 400
+    
+    settings = load_settings()
+    settings['language'] = lang
+    save_settings(settings)
+    
+    return jsonify({'success': True})
 
 @app.route('/api/status')
 @optional_login_required

@@ -2,5 +2,6 @@ plexapi
 requests
 flask
 flask-login
+flask-babel
 gunicorn
 werkzeug

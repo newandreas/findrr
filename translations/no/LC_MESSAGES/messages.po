@@ -1,0 +1,350 @@
+# Norwegian translations for PROJECT.
+# Copyright (C) 2026 ORGANIZATION
+# This file is distributed under the same license as the PROJECT project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2026.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2026-02-25 19:46+0100\n"
+"PO-Revision-Date: 2026-02-25 19:17+0100\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language: no\n"
+"Language-Team: no <LL@li.org>\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.18.0\n"
+
+#: templates/index.html:4
+msgid "Findrr of Bad Files"
+msgstr "Findrr av dårlige filer"
+
+#: templates/index.html:29
+msgid "Language"
+msgstr "Språk"
+
+#: templates/index.html:37 templates/settings.html:4
+msgid "Settings"
+msgstr "Innstillinger"
+
+#: templates/index.html:38
+msgid "Logout"
+msgstr "Logg ut"
+
+#: templates/index.html:45 templates/index.html:117
+msgid "Status"
+msgstr "Status"
+
+#: templates/index.html:45 templates/index.html:118 templates/index.html:139
+msgid "Loading"
+msgstr "Laster inn"
+
+#: templates/index.html:59 templates/index.html:120
+msgid "Scanned"
+msgstr "Skannet"
+
+#: templates/index.html:65 templates/index.html:121
+msgid "Passed"
+msgstr "Godkjent"
+
+#: templates/index.html:71 templates/index.html:122
+msgid "Failed"
+msgstr "Mislykket"
+
+#: templates/index.html:77 templates/index.html:123
+msgid "Passed & Cached"
+msgstr "Bestått og bufret"
+
+#: templates/index.html:85
+msgid "Verified Subtitles"
+msgstr "Verifiserte undertekster"
+
+#: templates/index.html:87 templates/index.html:95
+msgid "None yet"
+msgstr "Ingen ennå"
+
+#: templates/index.html:93
+msgid "Ignored Subtitles"
+msgstr "Ignorerte undertekster"
+
+#: templates/index.html:102
+msgid "Active Failures (Current Run)"
+msgstr "Aktive feil (gjeldende skann)"
+
+#: templates/index.html:108
+msgid "Completed Scan History"
+msgstr "Fullført skann-historikk"
+
+#: templates/index.html:110
+msgid "Loading history"
+msgstr "Laster inn historie"
+
+#: templates/index.html:119 templates/index.html:138
+msgid "Waiting"
+msgstr "Venter"
+
+#: templates/index.html:124
+msgid "No matching subtitles found"
+msgstr "Ingen samsvarende undertekster funnet"
+
+#: templates/index.html:125
+msgid "No subtitles ignored yet"
+msgstr "Ingen undertekster ignorert ennå"
+
+#: templates/index.html:126
+msgid "Issues Found"
+msgstr "Problemer funnet"
+
+#: templates/index.html:127
+msgid "Clean"
+msgstr "Godkjent"
+
+#: templates/index.html:128
+msgid "No complete scans yet"
+msgstr "Ingen fullstendige skanninger ennå"
+
+#: templates/index.html:133
+msgid "Idle"
+msgstr "Inaktiv"
+
+#: templates/index.html:134
+msgid "Scanning"
+msgstr "Skanner nå"
+
+#: templates/index.html:135
+msgid "Complete"
+msgstr "Fullført"
+
+#: templates/index.html:136 templates/settings.html:142
+#: templates/settings.html:152
+msgid "Error"
+msgstr "Feil"
+
+#: templates/index.html:137
+#, fuzzy
+msgid "Sleeping"
+msgstr "Venter"
+
+#: templates/login.html:4
+msgid "Login"
+msgstr "Logg inn"
+
+#: templates/login.html:30
+msgid "Password"
+msgstr "Passord"
+
+#: templates/login.html:35
+msgid "Confirm Password"
+msgstr "Bekreft Passord"
+
+#: templates/login.html:39
+msgid "Skip Password Setup?"
+msgstr "Hopp over passordoppsett?"
+
+#: templates/login.html:40
+msgid ""
+"If your application is behind a proxy with its own authentication, you "
+"can disable password protection here."
+msgstr ""
+"Hvis applikasjonen din er bak en proxy med sin egen autentisering, kan du"
+" deaktivere passordbeskyttelse her."
+
+#: templates/login.html:43
+msgid "Disable authentication (use if behind proxy)"
+msgstr "Deaktiver autentisering (bruk hvis bak proxy)"
+
+#: templates/settings.html:16
+msgid "Configuration"
+msgstr "Konfigurasjon"
+
+#: templates/settings.html:17
+msgid "Cancel"
+msgstr "Avbryt"
+
+#: templates/settings.html:21
+msgid "Server Connection"
+msgstr "Serververbindelse"
+
+#: templates/settings.html:23
+msgid "Plex URL"
+msgstr "Plex URL"
+
+#: templates/settings.html:27
+msgid "Plex Token"
+msgstr "Plex token"
+
+#: templates/settings.html:29
+msgid "Where is my token?"
+msgstr "Hvor er tokenen min?"
+
+#: templates/settings.html:32 templates/settings.html:140
+msgid "Test Connection & Load Libraries"
+msgstr "Test forbindelse og last biblioteker"
+
+#: templates/settings.html:37
+msgid "Scan Settings"
+msgstr "Skanner-innstillinger"
+
+#: templates/settings.html:40
+msgid "Select Libraries"
+msgstr "Velg biblioteker"
+
+#: templates/settings.html:46
+msgid "Subtitle Languages"
+msgstr "Undertekstetspråk"
+
+#: templates/settings.html:50
+msgid "Scan Interval (Seconds)"
+msgstr "Skanningsintervall (sekunder)"
+
+#: templates/settings.html:56
+msgid "Priority Title"
+msgstr "Prioritert tittel"
+
+#: templates/settings.html:61
+msgid "Canary File Test (Always Scan)"
+msgstr "Kanari-fil-test (alltid skann)"
+
+#: templates/settings.html:62
+msgid ""
+"Select files that will always be scanned, even if they passed previously."
+" This is useful to verify that the transcoder is still working."
+msgstr ""
+"Velg filer som alltid skal skannes, selv om de var bestått tidligere. "
+"Dette er nyttig for å kontrollere at transkoderen fortsetter å fungere."
+
+#: templates/settings.html:65
+msgid "Search Movie or Episode..."
+msgstr "Søk film eller episode..."
+
+#: templates/settings.html:66
+msgid "Search Plex"
+msgstr "Søk Plex"
+
+#: templates/settings.html:71
+msgid "Selected Canary Files:"
+msgstr "Valgte Kanari-filer:"
+
+#: templates/settings.html:73 templates/settings.html:147
+msgid "No files selected."
+msgstr "Ingen filer valgt."
+
+#: templates/settings.html:76
+msgid "Auth & Security"
+msgstr "Autentisering og sikkerhet"
+
+#: templates/settings.html:80
+msgid "Disable Authentication"
+msgstr "Deaktiver autentisering"
+
+#: templates/settings.html:82
+msgid "Enable this if your app is behind a proxy with its own authentication."
+msgstr "Aktiver hvis appen din er bak en proxy med sin egen autentisering."
+
+#: templates/settings.html:82
+msgid "Warning"
+msgstr "Advarsel"
+
+#: templates/settings.html:82
+msgid "Anyone with network access will be able to use this application."
+msgstr "Alle med tilgang til nettverket vil kunne bruke denne applikasjonen."
+
+#: templates/settings.html:86
+msgid "Change Password"
+msgstr "Endre passord"
+
+#: templates/settings.html:88
+msgid "Current Password"
+msgstr "Gjeldende passord"
+
+#: templates/settings.html:91
+msgid "New Password"
+msgstr "Nytt passord"
+
+#: templates/settings.html:94
+msgid "Confirm New Password"
+msgstr "Bekreft nytt passord"
+
+#: templates/settings.html:96
+msgid "Update Password"
+msgstr "Oppdater passord"
+
+#: templates/settings.html:103
+msgid "Notifications"
+msgstr "Varsler"
+
+#: templates/settings.html:105
+msgid "Discord Webhook URL"
+msgstr "Discord Webhook URL"
+
+#: templates/settings.html:110
+msgid "Discord User ID (Optional)"
+msgstr "Discord bruker-ID (valgfritt)"
+
+#: templates/settings.html:115
+msgid "Notification Rules"
+msgstr "Varselregler"
+
+#: templates/settings.html:119
+msgid "Immediate Alert"
+msgstr "Umiddelbar advarsel"
+
+#: templates/settings.html:124
+msgid "Summary (Faults)"
+msgstr "Oppsummering (feil)"
+
+#: templates/settings.html:129
+msgid "Summary (Success)"
+msgstr "Oppsummering (suksess)"
+
+#: templates/settings.html:133
+msgid "Save & Start Scanner"
+msgstr "Lagre og start skanner"
+
+#: templates/settings.html:139
+msgid "Testing..."
+msgstr "Tester..."
+
+#: templates/settings.html:141
+msgid "Connection Successful!"
+msgstr "Forbindelse vellykket!"
+
+#: templates/settings.html:143
+msgid "Searching..."
+msgstr "Søker..."
+
+#: templates/settings.html:144
+msgid "No results found (Movies/Episodes only)."
+msgstr "Ingen resultater funnet (kun filmer/episoder)."
+
+#: templates/settings.html:145
+msgid "Add"
+msgstr "Legg til"
+
+#: templates/settings.html:146
+msgid "Remove"
+msgstr "Fjern"
+
+#: templates/settings.html:148
+msgid "All fields are required."
+msgstr "Alle felt er påkrevd."
+
+#: templates/settings.html:149
+msgid "New passwords do not match."
+msgstr "Nye passord samsvarer ikke."
+
+#: templates/settings.html:150
+msgid "Password must be at least 4 characters."
+msgstr "Passord må være minst 4 tegn."
+
+#: templates/settings.html:151
+msgid "Password changed successfully!"
+msgstr "Passord endret med suksess!"
+
+#: templates/settings.html:347
+msgid "An error occurred."
+msgstr "En feil oppstod."
+

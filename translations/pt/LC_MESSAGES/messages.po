@@ -1,0 +1,345 @@
+# Portuguese translations for PROJECT.
+# Copyright (C) 2026 ORGANIZATION
+# This file is distributed under the same license as the PROJECT project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2026.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2026-02-25 19:46+0100\n"
+"PO-Revision-Date: 2026-02-25 19:08+0100\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language: pt\n"
+"Language-Team: pt <LL@li.org>\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.18.0\n"
+
+#: templates/index.html:4
+msgid "Findrr of Bad Files"
+msgstr ""
+
+#: templates/index.html:29
+msgid "Language"
+msgstr ""
+
+#: templates/index.html:37 templates/settings.html:4
+msgid "Settings"
+msgstr ""
+
+#: templates/index.html:38
+msgid "Logout"
+msgstr ""
+
+#: templates/index.html:45 templates/index.html:117
+msgid "Status"
+msgstr ""
+
+#: templates/index.html:45 templates/index.html:118 templates/index.html:139
+msgid "Loading"
+msgstr ""
+
+#: templates/index.html:59 templates/index.html:120
+msgid "Scanned"
+msgstr ""
+
+#: templates/index.html:65 templates/index.html:121
+msgid "Passed"
+msgstr ""
+
+#: templates/index.html:71 templates/index.html:122
+msgid "Failed"
+msgstr ""
+
+#: templates/index.html:77 templates/index.html:123
+msgid "Passed & Cached"
+msgstr ""
+
+#: templates/index.html:85
+msgid "Verified Subtitles"
+msgstr ""
+
+#: templates/index.html:87 templates/index.html:95
+msgid "None yet"
+msgstr ""
+
+#: templates/index.html:93
+msgid "Ignored Subtitles"
+msgstr ""
+
+#: templates/index.html:102
+msgid "Active Failures (Current Run)"
+msgstr ""
+
+#: templates/index.html:108
+msgid "Completed Scan History"
+msgstr ""
+
+#: templates/index.html:110
+msgid "Loading history"
+msgstr ""
+
+#: templates/index.html:119 templates/index.html:138
+msgid "Waiting"
+msgstr ""
+
+#: templates/index.html:124
+msgid "No matching subtitles found"
+msgstr ""
+
+#: templates/index.html:125
+msgid "No subtitles ignored yet"
+msgstr ""
+
+#: templates/index.html:126
+msgid "Issues Found"
+msgstr ""
+
+#: templates/index.html:127
+msgid "Clean"
+msgstr ""
+
+#: templates/index.html:128
+msgid "No complete scans yet"
+msgstr ""
+
+#: templates/index.html:133
+msgid "Idle"
+msgstr ""
+
+#: templates/index.html:134
+msgid "Scanning"
+msgstr ""
+
+#: templates/index.html:135
+msgid "Complete"
+msgstr ""
+
+#: templates/index.html:136 templates/settings.html:142
+#: templates/settings.html:152
+msgid "Error"
+msgstr ""
+
+#: templates/index.html:137
+msgid "Sleeping"
+msgstr ""
+
+#: templates/login.html:4
+msgid "Login"
+msgstr ""
+
+#: templates/login.html:30
+msgid "Password"
+msgstr ""
+
+#: templates/login.html:35
+msgid "Confirm Password"
+msgstr ""
+
+#: templates/login.html:39
+msgid "Skip Password Setup?"
+msgstr ""
+
+#: templates/login.html:40
+msgid ""
+"If your application is behind a proxy with its own authentication, you "
+"can disable password protection here."
+msgstr ""
+
+#: templates/login.html:43
+msgid "Disable authentication (use if behind proxy)"
+msgstr ""
+
+#: templates/settings.html:16
+msgid "Configuration"
+msgstr ""
+
+#: templates/settings.html:17
+msgid "Cancel"
+msgstr ""
+
+#: templates/settings.html:21
+msgid "Server Connection"
+msgstr ""
+
+#: templates/settings.html:23
+msgid "Plex URL"
+msgstr ""
+
+#: templates/settings.html:27
+msgid "Plex Token"
+msgstr ""
+
+#: templates/settings.html:29
+msgid "Where is my token?"
+msgstr ""
+
+#: templates/settings.html:32 templates/settings.html:140
+msgid "Test Connection & Load Libraries"
+msgstr ""
+
+#: templates/settings.html:37
+msgid "Scan Settings"
+msgstr ""
+
+#: templates/settings.html:40
+msgid "Select Libraries"
+msgstr ""
+
+#: templates/settings.html:46
+msgid "Subtitle Languages"
+msgstr ""
+
+#: templates/settings.html:50
+msgid "Scan Interval (Seconds)"
+msgstr ""
+
+#: templates/settings.html:56
+msgid "Priority Title"
+msgstr ""
+
+#: templates/settings.html:61
+msgid "Canary File Test (Always Scan)"
+msgstr ""
+
+#: templates/settings.html:62
+msgid ""
+"Select files that will always be scanned, even if they passed previously."
+" This is useful to verify that the transcoder is still working."
+msgstr ""
+
+#: templates/settings.html:65
+msgid "Search Movie or Episode..."
+msgstr ""
+
+#: templates/settings.html:66
+msgid "Search Plex"
+msgstr ""
+
+#: templates/settings.html:71
+msgid "Selected Canary Files:"
+msgstr ""
+
+#: templates/settings.html:73 templates/settings.html:147
+msgid "No files selected."
+msgstr ""
+
+#: templates/settings.html:76
+msgid "Auth & Security"
+msgstr ""
+
+#: templates/settings.html:80
+msgid "Disable Authentication"
+msgstr ""
+
+#: templates/settings.html:82
+msgid "Enable this if your app is behind a proxy with its own authentication."
+msgstr ""
+
+#: templates/settings.html:82
+msgid "Warning"
+msgstr ""
+
+#: templates/settings.html:82
+msgid "Anyone with network access will be able to use this application."
+msgstr ""
+
+#: templates/settings.html:86
+msgid "Change Password"
+msgstr ""
+
+#: templates/settings.html:88
+msgid "Current Password"
+msgstr ""
+
+#: templates/settings.html:91
+msgid "New Password"
+msgstr ""
+
+#: templates/settings.html:94
+msgid "Confirm New Password"
+msgstr ""
+
+#: templates/settings.html:96
+msgid "Update Password"
+msgstr ""
+
+#: templates/settings.html:103
+msgid "Notifications"
+msgstr ""
+
+#: templates/settings.html:105
+msgid "Discord Webhook URL"
+msgstr ""
+
+#: templates/settings.html:110
+msgid "Discord User ID (Optional)"
+msgstr ""
+
+#: templates/settings.html:115
+msgid "Notification Rules"
+msgstr ""
+
+#: templates/settings.html:119
+msgid "Immediate Alert"
+msgstr ""
+
+#: templates/settings.html:124
+msgid "Summary (Faults)"
+msgstr ""
+
+#: templates/settings.html:129
+msgid "Summary (Success)"
+msgstr ""
+
+#: templates/settings.html:133
+msgid "Save & Start Scanner"
+msgstr ""
+
+#: templates/settings.html:139
+msgid "Testing..."
+msgstr ""
+
+#: templates/settings.html:141
+msgid "Connection Successful!"
+msgstr ""
+
+#: templates/settings.html:143
+msgid "Searching..."
+msgstr ""
+
+#: templates/settings.html:144
+msgid "No results found (Movies/Episodes only)."
+msgstr ""
+
+#: templates/settings.html:145
+msgid "Add"
+msgstr ""
+
+#: templates/settings.html:146
+msgid "Remove"
+msgstr ""
+
+#: templates/settings.html:148
+msgid "All fields are required."
+msgstr ""
+
+#: templates/settings.html:149
+msgid "New passwords do not match."
+msgstr ""
+
+#: templates/settings.html:150
+msgid "Password must be at least 4 characters."
+msgstr ""
+
+#: templates/settings.html:151
+msgid "Password changed successfully!"
+msgstr ""
+
+#: templates/settings.html:347
+msgid "An error occurred."
+msgstr ""
+

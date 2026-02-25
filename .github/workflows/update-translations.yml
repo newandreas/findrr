@@ -1,0 +1,76 @@
+name: Sync Version from Tag
+
+on:
+  push:
+    tags:
+      - 'v*'  # Triggers on tags like v1.0.0, v1.1.0, etc.
+
+jobs:
+  sync-version:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0  # Get full history
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      
+      - name: Install dependencies
+        run: pip install Flask-Babel
+      
+      - name: Extract version from tag
+        id: version
+        run: |
+          TAG=${{ github.ref }}
+          VERSION=${TAG#refs/tags/v}
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Version: $VERSION"
+      
+      - name: Update app.py with new version
+        run: |
+          python -c "
+          import re
+          version = '${{ steps.version.outputs.version }}'
+          with open('app.py') as f:
+              content = f.read()
+          content = re.sub(r\"__version__\\s*=\\s*['\\\"]([^'\\\"]+)['\\\"]\", f\"__version__ = '{version}'\", content)
+          with open('app.py', 'w') as f:
+              f.write(content)
+          print(f'Updated app.py to version {version}')
+          "
+      
+      - name: Update babel.cfg with new version
+        run: |
+          python -c "
+          import re
+          version = '${{ steps.version.outputs.version }}'
+          with open('babel.cfg') as f:
+              content = f.read()
+          content = re.sub(r'^version\\s*=.*$', f'version = {version}', content, flags=re.MULTILINE)
+          with open('babel.cfg', 'w') as f:
+              f.write(content)
+          print(f'Updated babel.cfg to version {version}')
+          "
+      
+      - name: Extract translatable strings
+        run: pybabel extract -F babel.cfg -o messages.pot .
+      
+      - name: Update all language catalogs
+        run: pybabel update -i messages.pot -d translations
+      
+      - name: Compile translations
+        run: pybabel compile -d translations
+      
+      - name: Commit and push changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add app.py babel.cfg messages.pot translations/
+          git diff --quiet && git diff --staged --quiet || (
+            git commit -m "chore: sync version ${{ steps.version.outputs.version }} and update translations" &&
+            git push
+          )

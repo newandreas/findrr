@@ -1,0 +1,350 @@
+# Arabic translations for PROJECT.
+# Copyright (C) 2026 ORGANIZATION
+# This file is distributed under the same license as the PROJECT project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2026.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2026-02-25 19:46+0100\n"
+"PO-Revision-Date: 2026-02-25 19:08+0100\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language: ar\n"
+"Language-Team: ar <LL@li.org>\n"
+"Plural-Forms: nplurals=6; plural=(n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : "
+"n%100>=3 && n%100<=10 ? 3 : n%100>=0 && n%100<=2 ? 4 : 5);\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.18.0\n"
+
+#: templates/index.html:4
+msgid "Findrr of Bad Files"
+msgstr "فنصار الملفات السيئة"
+
+#: templates/index.html:29
+msgid "Language"
+msgstr "اللغة"
+
+#: templates/index.html:37 templates/settings.html:4
+msgid "Settings"
+msgstr "الإعدادات"
+
+#: templates/index.html:38
+msgid "Logout"
+msgstr "تسجيل الخروج"
+
+#: templates/index.html:45 templates/index.html:117
+msgid "Status"
+msgstr "الحالة"
+
+#: templates/index.html:45 templates/index.html:118 templates/index.html:139
+msgid "Loading"
+msgstr "جاري التحميل"
+
+#: templates/index.html:59 templates/index.html:120
+msgid "Scanned"
+msgstr "تم المسح"
+
+#: templates/index.html:65 templates/index.html:121
+msgid "Passed"
+msgstr "نجح"
+
+#: templates/index.html:71 templates/index.html:122
+msgid "Failed"
+msgstr "فشل"
+
+#: templates/index.html:77 templates/index.html:123
+msgid "Passed & Cached"
+msgstr "نجح ومخزن مؤقتاً"
+
+#: templates/index.html:85
+msgid "Verified Subtitles"
+msgstr "الترجمات المتحققة منها"
+
+#: templates/index.html:87 templates/index.html:95
+msgid "None yet"
+msgstr "لا توجد حتى الآن"
+
+#: templates/index.html:93
+msgid "Ignored Subtitles"
+msgstr "الترجمات المتجاهلة"
+
+#: templates/index.html:102
+msgid "Active Failures (Current Run)"
+msgstr "الأعطال النشطة (التشغيل الحالي)"
+
+#: templates/index.html:108
+msgid "Completed Scan History"
+msgstr "سجل الفحص المكتمل"
+
+#: templates/index.html:110
+msgid "Loading history"
+msgstr "جاري تحميل السجل"
+
+#: templates/index.html:119 templates/index.html:138
+msgid "Waiting"
+msgstr "في الانتظار"
+
+#: templates/index.html:124
+msgid "No matching subtitles found"
+msgstr "لم يتم العثور على ترجمات مطابقة"
+
+#: templates/index.html:125
+msgid "No subtitles ignored yet"
+msgstr "لم يتم تجاهل أي ترجمات حتى الآن"
+
+#: templates/index.html:126
+msgid "Issues Found"
+msgstr "تم العثور على مشاكل"
+
+#: templates/index.html:127
+msgid "Clean"
+msgstr "نظيف"
+
+#: templates/index.html:128
+msgid "No complete scans yet"
+msgstr "لا توجد عمليات مسح كاملة حتى الآن"
+
+#: templates/index.html:133
+msgid "Idle"
+msgstr "خامل"
+
+#: templates/index.html:134
+msgid "Scanning"
+msgstr "جاري المسح"
+
+#: templates/index.html:135
+msgid "Complete"
+msgstr "اكتمل"
+
+#: templates/index.html:136 templates/settings.html:142
+#: templates/settings.html:152
+msgid "Error"
+msgstr "خطأ"
+
+#: templates/index.html:137
+msgid "Sleeping"
+msgstr "نائم"
+
+#: templates/login.html:4
+msgid "Login"
+msgstr "تسجيل الدخول"
+
+#: templates/login.html:30
+msgid "Password"
+msgstr "كلمة المرور"
+
+#: templates/login.html:35
+msgid "Confirm Password"
+msgstr "تأكيد كلمة المرور"
+
+#: templates/login.html:39
+msgid "Skip Password Setup?"
+msgstr "تجاوز إعداد كلمة المرور؟"
+
+#: templates/login.html:40
+msgid ""
+"If your application is behind a proxy with its own authentication, you "
+"can disable password protection here."
+msgstr ""
+"إذا كان التطبيق الخاص بك خلف وكيل بمصادقة خاصة به، يمكنك تعطيل حماية كلمة"
+" المرور هنا."
+
+#: templates/login.html:43
+msgid "Disable authentication (use if behind proxy)"
+msgstr "تعطيل المصادقة (الاستخدام إذا كان خلف وكيل)"
+
+#: templates/settings.html:16
+msgid "Configuration"
+msgstr "التكوين"
+
+#: templates/settings.html:17
+msgid "Cancel"
+msgstr "إلغاء"
+
+#: templates/settings.html:21
+msgid "Server Connection"
+msgstr "اتصال الخادم"
+
+#: templates/settings.html:23
+msgid "Plex URL"
+msgstr "عنوان Plex"
+
+#: templates/settings.html:27
+msgid "Plex Token"
+msgstr "رمز Plex"
+
+#: templates/settings.html:29
+msgid "Where is my token?"
+msgstr "أين رمزي؟"
+
+#: templates/settings.html:32 templates/settings.html:140
+msgid "Test Connection & Load Libraries"
+msgstr "اختبار الاتصال وتحميل المكتبات"
+
+#: templates/settings.html:37
+msgid "Scan Settings"
+msgstr "إعدادات المسح"
+
+#: templates/settings.html:40
+msgid "Select Libraries"
+msgstr "حدد المكتبات"
+
+#: templates/settings.html:46
+msgid "Subtitle Languages"
+msgstr "لغات الترجمة"
+
+#: templates/settings.html:50
+msgid "Scan Interval (Seconds)"
+msgstr "فترة المسح (بالثواني)"
+
+#: templates/settings.html:56
+msgid "Priority Title"
+msgstr "عنوان الأولوية"
+
+#: templates/settings.html:61
+msgid "Canary File Test (Always Scan)"
+msgstr "اختبار الملف الاختباري (المسح دائماً)"
+
+#: templates/settings.html:62
+msgid ""
+"Select files that will always be scanned, even if they passed previously."
+" This is useful to verify that the transcoder is still working."
+msgstr ""
+"حدد الملفات التي سيتم مسحها دائماً، حتى لو نجحت مسبقاً. هذا مفيد للتحقق "
+"من أن جهاز الترميز لا يزال يعمل."
+
+#: templates/settings.html:65
+msgid "Search Movie or Episode..."
+msgstr "ابحث عن فيلم أو حلقة..."
+
+#: templates/settings.html:66
+msgid "Search Plex"
+msgstr "ابحث في Plex"
+
+#: templates/settings.html:71
+msgid "Selected Canary Files:"
+msgstr "ملفات الاختبار المحددة:"
+
+#: templates/settings.html:73 templates/settings.html:147
+msgid "No files selected."
+msgstr "لم يتم تحديد أي ملفات."
+
+#: templates/settings.html:76
+msgid "Auth & Security"
+msgstr "المصادقة والأمان"
+
+#: templates/settings.html:80
+msgid "Disable Authentication"
+msgstr "تعطيل المصادقة"
+
+#: templates/settings.html:82
+msgid "Enable this if your app is behind a proxy with its own authentication."
+msgstr "فعّل هذا إذا كان تطبيقك خلف وكيل بمصادقة خاصة به."
+
+#: templates/settings.html:82
+msgid "Warning"
+msgstr "تحذير"
+
+#: templates/settings.html:82
+msgid "Anyone with network access will be able to use this application."
+msgstr "يمكن لأي شخص لديه إمكانية الوصول للشبكة استخدام هذا التطبيق."
+
+#: templates/settings.html:86
+msgid "Change Password"
+msgstr "تغيير كلمة المرور"
+
+#: templates/settings.html:88
+msgid "Current Password"
+msgstr "كلمة المرور الحالية"
+
+#: templates/settings.html:91
+msgid "New Password"
+msgstr "كلمة المرور الجديدة"
+
+#: templates/settings.html:94
+msgid "Confirm New Password"
+msgstr "تأكيد كلمة المرور الجديدة"
+
+#: templates/settings.html:96
+msgid "Update Password"
+msgstr "تحديث كلمة المرور"
+
+#: templates/settings.html:103
+msgid "Notifications"
+msgstr "الإخطارات"
+
+#: templates/settings.html:105
+msgid "Discord Webhook URL"
+msgstr "عنوان Discord Webhook"
+
+#: templates/settings.html:110
+msgid "Discord User ID (Optional)"
+msgstr "معرّف مستخدم Discord (اختياري)"
+
+#: templates/settings.html:115
+msgid "Notification Rules"
+msgstr "قواعد الإخطار"
+
+#: templates/settings.html:119
+msgid "Immediate Alert"
+msgstr "تنبيه فوري"
+
+#: templates/settings.html:124
+msgid "Summary (Faults)"
+msgstr "ملخص (الأعطال)"
+
+#: templates/settings.html:129
+msgid "Summary (Success)"
+msgstr "ملخص (النجاح)"
+
+#: templates/settings.html:133
+msgid "Save & Start Scanner"
+msgstr "الحفظ وبدء الماسح"
+
+#: templates/settings.html:139
+msgid "Testing..."
+msgstr "جاري الاختبار..."
+
+#: templates/settings.html:141
+msgid "Connection Successful!"
+msgstr "الاتصال ناجح!"
+
+#: templates/settings.html:143
+msgid "Searching..."
+msgstr "جاري البحث..."
+
+#: templates/settings.html:144
+msgid "No results found (Movies/Episodes only)."
+msgstr "لم يتم العثور على نتائج (الأفلام والحلقات فقط)."
+
+#: templates/settings.html:145
+msgid "Add"
+msgstr "إضافة"
+
+#: templates/settings.html:146
+msgid "Remove"
+msgstr "إزالة"
+
+#: templates/settings.html:148
+msgid "All fields are required."
+msgstr "جميع الحقول مطلوبة."
+
+#: templates/settings.html:149
+msgid "New passwords do not match."
+msgstr "كلمات المرور الجديدة غير متطابقة."
+
+#: templates/settings.html:150
+msgid "Password must be at least 4 characters."
+msgstr "يجب أن تكون كلمة المرور 4 أحرف على الأقل."
+
+#: templates/settings.html:151
+msgid "Password changed successfully!"
+msgstr "تم تغيير كلمة المرور بنجاح!"
+
+#: templates/settings.html:347
+msgid "An error occurred."
+msgstr "حدث خطأ."
+
