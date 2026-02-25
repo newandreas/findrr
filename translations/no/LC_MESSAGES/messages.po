@@ -56,7 +56,7 @@ msgstr "Mislykket"
 
 #: templates/index.html:77 templates/index.html:123
 msgid "Passed & Cached"
-msgstr "Bestått og bufret"
+msgstr "Godkjent og bufret"
 
 #: templates/index.html:85
 msgid "Verified Subtitles"
@@ -124,9 +124,8 @@ msgid "Error"
 msgstr "Feil"
 
 #: templates/index.html:137
-#, fuzzy
 msgid "Sleeping"
-msgstr "Venter"
+msgstr "Sover"
 
 #: templates/login.html:4
 msgid "Login"
@@ -213,7 +212,7 @@ msgid ""
 "Select files that will always be scanned, even if they passed previously."
 " This is useful to verify that the transcoder is still working."
 msgstr ""
-"Velg filer som alltid skal skannes, selv om de var bestått tidligere. "
+"Velg filer som alltid skal skannes, selv om de var godkjent tidligere. "
 "Dette er nyttig for å kontrollere at transkoderen fortsetter å fungere."
 
 #: templates/settings.html:65
