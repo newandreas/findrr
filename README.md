@@ -22,6 +22,7 @@ So far Findrr has caught files that crash the transcoder by:
 * **WebUI:** A clean Web UI for first time setup, viewing live progress, scan history, and managing settings.
 * **Smart Caching:** Uses a local SQLite database to track file fingerprints. Only re-scans files that have changed or are new 
 * **Priority Queueing:** Want to test a specific movie or show first? Set a "Priority Title" to jump it to the front of the scan queue.
+* **Canary File Testing:** Designate specific files as system health checks. If transcoding fails on canary files, immediate alerts notify you that the Plex Transcoder may be down.
 
 ## **Granular Discord Notifications:**
 * **Immediate Alerts:** Get pinged the second a corruption is found.
@@ -87,7 +88,20 @@ Once logged in, navigate to **Settings** to configure Findrr.
 
 * **Priority Title:** If set (e.g., "Futurama"), this show or movie will be scanned before anything else.
 
-### 3. Notifications (Discord)
+### 3. Canary Files
+
+**Canary Files** are designated items in your Plex library used to detect if the Plex Transcoder is functioning:
+
+* Search for and add specific files (movies or episodes) to use as health checks.
+* These files are **always scanned** regardless of cache status.
+* Canary files bypass the cache, ensuring you get real transcoder health data.
+* Receive alerts when:
+  - **🚨 OUTAGE:** A canary file fails to transcode (transcoder may be down)
+  - **✅ RECOVERED:** Canary file test passes after a previous failure
+  - **⚠️ MISSING:** A canary file has been deleted from Plex
+  - **ℹ️ CHANGED:** A canary file has been modified and rescanned
+
+### 4. Notifications (Discord)
 
 You can configure exactly how much noise Findrr makes:
 
