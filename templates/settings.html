@@ -73,6 +73,33 @@
                 <li class="list-group-item text-muted">No files selected.</li>
             </ul>
             <hr class="my-4">
+            <h5 class="text-warning mb-3">Auth & Security</h5>
+            <div class="card bg-warning bg-opacity-10 p-3 mb-4">
+                <div class="form-check form-switch mb-3">
+                    <input class="form-check-input" type="checkbox" id="auth_disabled" {% if settings.get('auth_disabled') %}checked{% endif %}>
+                    <label class="form-check-label" for="auth_disabled">🔓 Disable Authentication</label>
+                </div>
+                <p class="text-muted small mb-4">Enable this if your app is behind a proxy with its own authentication. <b>Warning:</b> Anyone with network access will be able to use this application.</p>
+                
+                <div id="change-password-section" {% if settings.get('auth_disabled') %}style="display:none;"{% endif %}>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Change Password</label>
+                        <div class="mb-2">
+                            <input type="password" id="current_password" class="form-control" placeholder="Current Password">
+                        </div>
+                        <div class="mb-2">
+                            <input type="password" id="new_password" class="form-control" placeholder="New Password">
+                        </div>
+                        <div class="mb-2">
+                            <input type="password" id="confirm_new_password" class="form-control" placeholder="Confirm New Password">
+                        </div>
+                        <button type="button" onclick="changePassword()" class="btn btn-sm btn-warning">Update Password</button>
+                        <div id="password-change-result" class="mt-2"></div>
+                    </div>
+                </div>
+            </div>
+
+            <hr class="my-4">
             <h5 class="text-primary mb-3">Notifications</h5>
             <div class="mb-3">
                 <label class="form-label">Discord Webhook URL</label>
@@ -233,7 +260,8 @@
                 discord_userid: document.getElementById('discord_userid').value,
                 notify_immediate: document.getElementById('notify_immediate').checked,
                 notify_on_failure: document.getElementById('notify_on_failure').checked,
-                notify_on_success: document.getElementById('notify_on_success').checked
+                notify_on_success: document.getElementById('notify_on_success').checked,
+                auth_disabled: document.getElementById('auth_disabled').checked
             };
 
             fetch('/api/save_settings', {
@@ -250,6 +278,63 @@
 
         if (savedLibraries.length > 0) {
            testConnection(); 
+        }
+
+        // Toggle password change section based on auth_disabled
+        document.getElementById('auth_disabled').addEventListener('change', function() {
+            const section = document.getElementById('change-password-section');
+            if (this.checked) {
+                section.style.display = 'none';
+            } else {
+                section.style.display = 'block';
+            }
+        });
+
+        function changePassword() {
+            const current = document.getElementById('current_password').value;
+            const newPw = document.getElementById('new_password').value;
+            const confirm = document.getElementById('confirm_new_password').value;
+            const resultDiv = document.getElementById('password-change-result');
+            
+            resultDiv.innerHTML = '';
+            
+            if (!current || !newPw || !confirm) {
+                resultDiv.innerHTML = '<div class="alert alert-warning py-1">All fields are required.</div>';
+                return;
+            }
+            
+            if (newPw !== confirm) {
+                resultDiv.innerHTML = '<div class="alert alert-warning py-1">New passwords do not match.</div>';
+                return;
+            }
+            
+            if (newPw.length < 4) {
+                resultDiv.innerHTML = '<div class="alert alert-warning py-1">Password must be at least 4 characters.</div>';
+                return;
+            }
+            
+            fetch('/api/change_password', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    current_password: current,
+                    new_password: newPw
+                })
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    resultDiv.innerHTML = '<div class="alert alert-success py-1">Password changed successfully!</div>';
+                    document.getElementById('current_password').value = '';
+                    document.getElementById('new_password').value = '';
+                    document.getElementById('confirm_new_password').value = '';
+                } else {
+                    resultDiv.innerHTML = `<div class="alert alert-danger py-1">Error: ${data.error}</div>`;
+                }
+            })
+            .catch(err => {
+                resultDiv.innerHTML = '<div class="alert alert-danger py-1">An error occurred.</div>';
+            });
         }
     </script>
 </body>

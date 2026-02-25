@@ -24,7 +24,7 @@
         <h2 class="mb-3 mb-sm-0">Findrr of Bad Files</h2>
         <div class="w-100 w-sm-auto d-flex justify-content-between">
             <a href="/settings" class="btn btn-outline-light btn-sm px-3">⚙️ Settings</a>
-            <a href="/logout" class="btn btn-outline-danger btn-sm ms-2 px-3">Logout</a>
+            {% if auth_enabled %}<a href="/logout" class="btn btn-outline-danger btn-sm ms-2 px-3">Logout</a>{% endif %}
         </div>
     </div>
 
