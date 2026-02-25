@@ -58,6 +58,21 @@
             </div>
 
             <hr class="my-4">
+            <h5 class="text-info mb-3">Canary File Test (Always Scan)</h5>
+            <p class="text-muted small">Select files that will <b>always</b> be scanned, even if they passed previously. This is useful to verify that the transcoder is still working.</p>
+            
+            <div class="input-group mb-2">
+                <input type="text" id="canary-search" class="form-control" placeholder="Search Movie or Episode...">
+                <button class="btn btn-outline-info" type="button" onclick="searchPlex()">Search Plex</button>
+            </div>
+            
+            <div id="search-results" class="list-group mb-3"></div>
+
+            <label class="form-label fw-bold">Selected Canary Files:</label>
+            <ul id="canary-list" class="list-group mb-3">
+                <li class="list-group-item text-muted">No files selected.</li>
+            </ul>
+            <hr class="my-4">
             <h5 class="text-primary mb-3">Notifications</h5>
             <div class="mb-3">
                 <label class="form-label">Discord Webhook URL</label>
@@ -97,6 +112,71 @@
     <script>
         let availableLibraries = [];
         let savedLibraries = {{ settings.get('libraries', []) | tojson }};
+        let savedCanaryFile = {{ settings.get('canary_files', []) | tojson }};
+
+        function renderCanaryList() {
+            const list = document.getElementById('canary-list');
+            list.innerHTML = '';
+            if (savedCanaryFile.length === 0) {
+                list.innerHTML = '<li class="list-group-item text-muted">No files selected.</li>';
+                return;
+            }
+            savedCanaryFile.forEach((item, index) => {
+                const li = document.createElement('li');
+                li.className = 'list-group-item d-flex justify-content-between align-items-center';
+                li.innerHTML = `
+                    <span><b>[${item.type}]</b> ${item.title}</span>
+                    <button class="btn btn-sm btn-danger" onclick="removeCanaryFile(${index})">Remove</button>
+                `;
+                list.appendChild(li);
+            });
+        }
+
+        function removeCanaryFile(index) {
+            savedCanaryFile.splice(index, 1);
+            renderCanaryList();
+        }
+
+        function addCanaryFile(id, title, type) {
+            // Prevent duplicates
+            if (savedCanaryFile.find(x => x.id == id)) return;
+            savedCanaryFile.push({id: id, title: title, type: type});
+            renderCanaryList();
+            document.getElementById('search-results').innerHTML = ''; // Clear search results
+        }
+
+        function searchPlex() {
+            const query = document.getElementById('canary-search').value;
+            const resDiv = document.getElementById('search-results');
+            resDiv.innerHTML = '<div class="text-center p-2">Searching...</div>';
+            
+            fetch('/api/search_plex', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({query: query})
+            })
+            .then(r => r.json())
+            .then(data => {
+                resDiv.innerHTML = '';
+                if (!data.results || data.results.length === 0) {
+                    resDiv.innerHTML = '<div class="alert alert-warning py-1">No results found (Movies/Episodes only).</div>';
+                    return;
+                }
+                data.results.forEach(item => {
+                    // Escape quotes for the onclick handler
+                    const safeTitle = item.title.replace(/'/g, "\\'");
+                    const btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.className = 'list-group-item list-group-item-action d-flex justify-content-between align-items-center';
+                    btn.onclick = () => addCanaryFile(item.id, item.title, item.type);
+                    btn.innerHTML = `
+                        <span><b>[${item.type}]</b> ${item.title}</span>
+                        <span class="badge bg-primary rounded-pill">+ Add</span>
+                    `;
+                    resDiv.appendChild(btn);
+                });
+            });
+        }
 
         function testConnection() {
             const btn = document.querySelector('button');
@@ -145,6 +225,7 @@
                 plex_url: document.getElementById('plex_url').value,
                 plex_token: document.getElementById('plex_token').value,
                 libraries: selectedLibs,
+                canary_files: savedCanaryFile,
                 scan_interval: parseInt(document.getElementById('scan_interval').value),
                 discord_webhook: document.getElementById('discord_webhook').value,
                 priority_title: document.getElementById('priority_title').value,
@@ -164,6 +245,9 @@
             });
         }
         
+        // Initial render
+        renderCanaryList();
+
         if (savedLibraries.length > 0) {
            testConnection(); 
         }

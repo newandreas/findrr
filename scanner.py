@@ -143,52 +143,97 @@ def verify_stream(media_item, subtitle_stream=None):
     except:
         return False
 
+def send_canary_alert(settings, title, status_type, message, detail_field=None):
+    """
+    Sends a specialized alert for Canary Test events.
+    status_type: "OUTAGE" (Red), "RECOVERED" (Green), "MISSING" (Orange), "CHANGED" (Blue)
+    """
+    webhook = settings.get('discord_webhook')
+    if not webhook: return
+
+    userid = settings.get('discord_userid', '').strip()
+    mention = f"<@{userid}> " if userid else ""
+
+    if status_type == "OUTAGE":
+        color = 0xFF0000  # Red
+        embed_title = "🚨 SYSTEM OUTAGE DETECTED"
+        desc = "**The Canary File Test failed.** The Plex Transcoder may be down."
+    elif status_type == "RECOVERED":
+        color = 0x00FF00  # Green
+        embed_title = "✅ SYSTEM RESTORED"
+        desc = "**The Canary File Test passed.** The Plex Transcoder appears to be working again."
+    elif status_type == "MISSING":
+        color = 0xFFA500  # Orange
+        embed_title = "⚠️ CANARY CONFIGURATION WARNING"
+        desc = "**A Canary File Test item is missing.** It may have been deleted from Plex."
+        mention = "" # Don't ping for missing files, just log it
+    elif status_type == "CHANGED":
+        color = 0x0099FF # Blue
+        embed_title = "ℹ️ CANARY FILE UPDATED"
+        desc = "**The Canary File Test file has changed.** A new scan was performed."
+        mention = "" 
+    else:
+        color = 0xCCCCCC
+        embed_title = "Canary Notification"
+        desc = message
+
+    fields = [
+        {"name": "File/Title", "value": title, "inline": False},
+        {"name": "Status", "value": message, "inline": False}
+    ]
+    
+    if detail_field:
+        fields.append(detail_field)
+
+    embed = {
+        "title": embed_title,
+        "description": desc,
+        "color": color,
+        "fields": fields,
+        "footer": {"text": "Canary File Test • Findrr"}
+    }
+
+    try:
+        requests.post(webhook, json={"content": mention, "embeds": [embed]})
+    except Exception as e:
+        print(f"Discord Error: {e}")
+
 def send_immediate_alert(settings, failure_data):
     webhook = settings.get('discord_webhook')
-    if not webhook: 
-        print("DEBUG: No webhook set, skipping immediate alert.")
-        return
-
-
+    if not webhook: return
     time.sleep(2) 
 
     userid = settings.get('discord_userid', '').strip()
     mention = f"<@{userid}> " if userid else ""
 
     embed = {
-        "title": "❌ New Transcode Faliure Detected",
-        "color": 0xff0000,
+        "title": "❌ New Transcode Failure Detected",
+        "color": 0xFF9900, 
         "fields": [
             {"name": "Title", "value": failure_data['title'], "inline": True},
             {"name": "Reason", "value": failure_data['reason'], "inline": True},
             {"name": "File", "value": f"`{failure_data['file']}`", "inline": False}
         ],
-        "footer": {"text": "Immediate Alert • Findrr of Bad Files"}
+        "footer": {"text": "Findrr of Bad Files"}
     }
     
     try:
-        print(f"DEBUG: Sending Immediate Alert for {failure_data['title']}...")
-        r = requests.post(webhook, json={"content": mention, "embeds": [embed]})
-        print(f"DEBUG: Discord Response: {r.status_code}")
-        if r.status_code == 429:
-            print("WARNING: Discord Rate Limit Hit!")
+        requests.post(webhook, json={"content": mention, "embeds": [embed]})
     except Exception as e:
         print(f"Discord Error: {e}")
 
 def send_discord_report(settings, stats, failures):
     webhook = settings.get('discord_webhook')
-    if not webhook:
-        print("DEBUG: No webhook set, skipping summary report.")
-        return
+    if not webhook: return
 
     userid = settings.get('discord_userid', '').strip()
     mention = f"<@{userid}> " if userid else ""
 
-    color = 0x00ff00
+    color = 0x00FF00
     if failures:
-        color = 0xff0000
+        color = 0xFF0000
     elif stats['failed'] > 0:
-        color = 0xff9900 
+        color = 0xFF9900 
 
     sub_text = ""
     if stats['subtitle_stats']:
@@ -218,12 +263,8 @@ def send_discord_report(settings, stats, failures):
         embeds[0]["fields"] = [{"name": "New Failed Items", "value": failure_text, "inline": False}]
 
     try:
-        print("DEBUG: Sending Summary Report...")
         msg_content = mention if failures else ""
-        r = requests.post(webhook, json={"content": msg_content, "embeds": embeds})
-        print(f"DEBUG: Discord Response: {r.status_code}")
-        if r.status_code != 204:
-            print(f"DEBUG: Discord Error Body: {r.text}")
+        requests.post(webhook, json={"content": msg_content, "embeds": embeds})
     except Exception as e:
         print(f"Discord Error: {e}")
 
@@ -280,6 +321,12 @@ def run_scan_loop():
             target_languages = list(target_languages)
             
             libraries = settings.get('libraries', [])
+            
+            # Canary file setup
+            canary_file = settings.get('canary_files', [])
+            canary_ids = [str(x['id']) for x in canary_file]
+            found_canary_ids = set()
+
             items_to_process = []
             
             for lib_name in libraries:
@@ -323,18 +370,33 @@ def run_scan_loop():
                     for part in media.parts:
                         fingerprint = get_file_fingerprint(part)
                         
-                        if should_skip(conn, fingerprint):
-                            state['skipped'] += 1
-                            continue
-
-                        state['scanned'] += 1
+                        # Canary file Check
+                        is_canary = str(item.ratingKey) in canary_ids
+                        file_changed = False
                         
                         c = conn.cursor()
-                        c.execute("SELECT status FROM file_checks WHERE file_path=?", (fingerprint['path'],))
+                        c.execute("SELECT file_size, mtime, status FROM file_checks WHERE file_path=?", (fingerprint['path'],))
                         row = c.fetchone()
-                        previous_status = row[0] if row else None
+                        previous_status = row[2] if row else None
                         
+                        if is_canary:
+                            found_canary_ids.add(str(item.ratingKey))
+                            print(f"   [CANARY] Forcing scan on {display_title}")
+                            
+                            # Check for file changes
+                            if row:
+                                stored_size, stored_mtime, _ = row
+                                if stored_size != fingerprint['size'] or stored_mtime != fingerprint['mtime']:
+                                    file_changed = True
+                                    print(f"   [CANARY] File changed detected for {display_title}")
+
+                        if not is_canary and should_skip(conn, fingerprint):
+                            state['skipped'] += 1
+                            continue
+                            
+                        state['scanned'] += 1
                         state['current_activity'] = "Video Stream"
+                        
                         success = verify_stream(item)
                         reason = "Video Transcode Failed"
 
@@ -358,6 +420,11 @@ def run_scan_loop():
 
                         if success:
                             state['passed'] += 1
+                            if is_canary:
+                                if file_changed:
+                                    send_canary_alert(settings, display_title, "CHANGED", "The file was updated and PASSED the scan.")
+                                elif previous_status == 'FAIL':
+                                    send_canary_alert(settings, display_title, "RECOVERED", "The file failed previously but is now playable.")
                         else:
                             state['failed'] += 1
                             failure_data = {'title': display_title, 'file': os.path.basename(part.file), 'reason': reason}
@@ -365,17 +432,22 @@ def run_scan_loop():
                             
                             is_new_failure = (previous_status != 'FAIL')
                             
-                            # --- NOTIFICATION LOGIC: IMMEDIATE ---
-                            # Only send if it's NEW and the checkbox is checked
-                            if is_new_failure and notify_immediate:
-                                send_immediate_alert(settings, failure_data)
-                            # -------------------------------------
-
-                            if is_new_failure:
-                                new_discord_failures.append(failure_data)
-                                print(f"   [FAIL] {display_title} (New)")
+                            if is_canary:
+                                if file_changed:
+                                    send_canary_alert(settings, display_title, "CHANGED", f"The file was updated and FAILED the scan.\nReason: {reason}")
+                                elif is_new_failure:
+                                    send_canary_alert(settings, display_title, "OUTAGE", reason)
+                                    print(f"   [CANARY FILE FAIL] {display_title} (New)")
+                                else:
+                                    print(f"   [CANARY FILE FAIL] {display_title} (Known)")
                             else:
-                                print(f"   [FAIL] {display_title} (Known)")
+                                if is_new_failure:
+                                    if notify_immediate:
+                                        send_immediate_alert(settings, failure_data)
+                                    new_discord_failures.append(failure_data)
+                                    print(f"   [FAIL] {display_title} (New)")
+                                else:
+                                    print(f"   [FAIL] {display_title} (Known)")
                         
                         time.sleep(1)
 
@@ -383,29 +455,35 @@ def run_scan_loop():
             if not restart_event.is_set() and not stop_event.is_set():
                 state['last_scan_time'] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                 save_scan_history(conn, libraries, state)
+                
+                # Check for Missing Canary Files
+                missing_ids = set(canary_ids) - found_canary_ids
+                if missing_ids and len(items_to_process) > 0: # Ensure scan actually ran
+                    missing_titles = []
+                    for m_id in missing_ids:
+                        # Find title from settings
+                        t = next((x['title'] for x in canary_files if str(x['id']) == m_id), f"ID: {m_id}")
+                        missing_titles.append(t)
+                    
+                    list_text = "\n".join([f"• {t}" for t in missing_titles])
+                    send_canary_alert(settings, "Multiple Files" if len(missing_titles)>1 else missing_titles[0], 
+                                      "MISSING", 
+                                      "The following configured Canary files were not found in Plex:", 
+                                      detail_field={"name": "Missing Files", "value": list_text, "inline": False})
 
-                # --- NOTIFICATION LOGIC: SUMMARY ---
+                # Summary Notifications
                 should_send = False
                 work_done = (state['scanned'] > 0 or state['skipped'] > 0 or state['failed'] > 0)
                 
-                # Logic:
-                # 1. Did we fail? -> Check 'notify_on_failure'
-                # 2. Did we pass (clean)? -> Check 'notify_on_success'
-                
                 if work_done:
                     has_failures = state['failed'] > 0
-                    
                     if has_failures:
-                        if notify_on_failure:
-                            should_send = True
+                        if notify_on_failure: should_send = True
                     else:
-                        # Clean scan (0 failures)
-                        if notify_on_success:
-                            should_send = True
+                        if notify_on_success: should_send = True
                 
                 if should_send:
                     send_discord_report(settings, state, new_discord_failures)
-                # -----------------------------------
                 
             conn.close()
             

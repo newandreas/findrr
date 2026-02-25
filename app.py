@@ -132,13 +132,46 @@ def test_connection():
         token = current_settings.get('plex_token')
 
     try:
-        # Use the 'token' variable we just validated
+        # Use the 'token' variable we just validated instead of data['plex_token']
         plex = PlexServer(url, token)
         libs = [s.title for s in plex.library.sections() if s.type in ['movie', 'show']]
         return jsonify({'success': True, 'libraries': libs})
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
-        
+
+@app.route('/api/search_plex', methods=['POST'])
+@login_required
+def search_plex():
+    from plexapi.server import PlexServer
+    settings = load_settings()
+    query = request.json.get('query')
+    
+    if not query or not settings.get('plex_url') or not settings.get('plex_token'):
+        return jsonify({'results': []})
+
+    try:
+        plex = PlexServer(settings['plex_url'], settings['plex_token'])
+        # Search and filter for Movies and Episodes only
+        results = plex.search(query)
+        output = []
+        for item in results:
+            if item.type == 'movie':
+                output.append({
+                    'id': item.ratingKey,
+                    'title': f"{item.title} ({item.year})",
+                    'type': 'Movie'
+                })
+            elif item.type == 'episode':
+                title = f"{item.grandparentTitle} - {item.seasonEpisode} - {item.title}"
+                output.append({
+                    'id': item.ratingKey,
+                    'title': title,
+                    'type': 'Episode'
+                })
+        return jsonify({'results': output})
+    except Exception as e:
+        return jsonify({'error': str(e), 'results': []})
+
 @app.route('/api/history')
 @login_required
 def get_history():
