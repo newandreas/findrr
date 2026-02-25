@@ -1,6 +1,6 @@
 FROM python:alpine
 
-RUN apk add --no-cache su-exec
+RUN apk add --no-cache su-exec tzdata
 
 RUN addgroup -S -g 1000 appgroup && \
     adduser -S -u 1000 -G appgroup -h /home/appuser appuser
