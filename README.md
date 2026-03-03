@@ -4,7 +4,7 @@
 
 **Findrr** is a self-hosted health check tool for Plex Media Server. It acts as a virtual client, attempting to transcode and stream every item in your library to that it will play.
 
-> [!WARNING]
+> [!CAUTION]
 > This app was coded with the help of LLMs, I am not a professional coder. Don't trust the administrator password to be safe enough to expose the WebUI to the internet without a reverse proxy with authentication on top!
 
 Unlike simpler video integrity checks using ffmpeg, Findrr forces Plex to transcode the video and burn in subtitles, catching stuff that only appears during real user playback.
