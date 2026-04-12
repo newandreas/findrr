@@ -96,11 +96,20 @@ def get_recent_history():
     except:
         return []
 
-def get_file_fingerprint(part):
+def get_file_fingerprint(item, part):
+    # Base mtime from the file part
+    part_mtime = float(getattr(part, 'updatedAt', 0) or 0)
+    
+    # Add Plex's media item addedAt timestamp
+    added_at = 0
+    if hasattr(item, 'addedAt') and item.addedAt:
+        added_at = float(item.addedAt.timestamp())
+        
     return {
         'path': part.file,
         'size': part.size,
-        'mtime': getattr(part, 'updatedAt', 0) 
+        # Combining these ensures re-imports generate a new DB fingerprint
+        'mtime': part_mtime + added_at 
     }
 
 def should_skip(conn, fingerprint):
@@ -222,7 +231,7 @@ def send_immediate_alert(settings, failure_data):
     except Exception as e:
         print(f"Discord Error: {e}")
 
-def send_discord_report(settings, stats, failures):
+def send_discord_report(settings, stats, failures, is_recovery=False):
     webhook = settings.get('discord_webhook')
     if not webhook: return
 
@@ -247,8 +256,15 @@ def send_discord_report(settings, stats, failures):
         f"{sub_text}"
     )
 
+    # Determine the Embed Title
+    title = "✅ Scan Complete"
+    if failures:
+        title = "❌ New Failures Detected"
+    elif is_recovery:
+        title = "🎉 All Issues Resolved!"
+
     embeds = [{
-        "title": "✅ Scan Complete" if not failures else "❌ New Failures Detected",
+        "title": title,
         "description": description,
         "color": color,
         "footer": {"text": "Findrr of Bad Files"}
@@ -368,7 +384,7 @@ def run_scan_loop():
 
                 for media in item.media:
                     for part in media.parts:
-                        fingerprint = get_file_fingerprint(part)
+                        fingerprint = get_file_fingerprint(item, part)
                         
                         # Canary file Check
                         is_canary = str(item.ratingKey) in canary_ids
@@ -379,16 +395,17 @@ def run_scan_loop():
                         row = c.fetchone()
                         previous_status = row[2] if row else None
                         
+                        # Check for file changes for ALL files, not just canaries
+                        if row:
+                            stored_size, stored_mtime, _ = row
+                            if stored_size != fingerprint['size'] or stored_mtime != fingerprint['mtime']:
+                                file_changed = True
+                        
                         if is_canary:
                             found_canary_ids.add(str(item.ratingKey))
                             print(f"   [CANARY] Forcing scan on {display_title}")
-                            
-                            # Check for file changes
-                            if row:
-                                stored_size, stored_mtime, _ = row
-                                if stored_size != fingerprint['size'] or stored_mtime != fingerprint['mtime']:
-                                    file_changed = True
-                                    print(f"   [CANARY] File changed detected for {display_title}")
+                            if file_changed:
+                                print(f"   [CANARY] File changed detected for {display_title}")
 
                         if not is_canary and should_skip(conn, fingerprint):
                             state['skipped'] += 1
@@ -430,7 +447,7 @@ def run_scan_loop():
                             failure_data = {'title': display_title, 'file': os.path.basename(part.file), 'reason': reason}
                             state['failures'].append(failure_data)
                             
-                            is_new_failure = (previous_status != 'FAIL')
+                            is_new_failure = (previous_status != 'FAIL' or file_changed)
                             
                             if is_canary:
                                 if file_changed:
@@ -453,6 +470,12 @@ def run_scan_loop():
 
             # --- END OF LOOP ---
             if not restart_event.is_set() and not stop_event.is_set():
+                # Get previous failures before saving new history
+                c = conn.cursor()
+                c.execute("SELECT failed FROM scan_history ORDER BY id DESC LIMIT 1")
+                last_hist = c.fetchone()
+                previous_failed = last_hist[0] if last_hist else 0
+
                 state['last_scan_time'] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                 save_scan_history(conn, libraries, state)
                 
@@ -462,7 +485,7 @@ def run_scan_loop():
                     missing_titles = []
                     for m_id in missing_ids:
                         # Find title from settings
-                        t = next((x['title'] for x in canary_files if str(x['id']) == m_id), f"ID: {m_id}")
+                        t = next((x['title'] for x in canary_file if str(x['id']) == m_id), f"ID: {m_id}")
                         missing_titles.append(t)
                     
                     list_text = "\n".join([f"• {t}" for t in missing_titles])
@@ -474,16 +497,24 @@ def run_scan_loop():
                 # Summary Notifications
                 should_send = False
                 work_done = (state['scanned'] > 0 or state['skipped'] > 0 or state['failed'] > 0)
+                is_recovery = False
                 
                 if work_done:
-                    has_failures = state['failed'] > 0
-                    if has_failures:
+                    has_new_failures = len(new_discord_failures) > 0
+                    if has_new_failures:
                         if notify_on_failure: should_send = True
                     else:
-                        if notify_on_success: should_send = True
+                        # Check for a complete recovery
+                        if state['failed'] == 0 and previous_failed > 0:
+                            is_recovery = True
+                            # Only send recovery if they have either summary notification turned on
+                            if notify_on_failure or notify_on_success:
+                                should_send = True 
+                        elif notify_on_success: 
+                            should_send = True
                 
                 if should_send:
-                    send_discord_report(settings, state, new_discord_failures)
+                    send_discord_report(settings, state, new_discord_failures, is_recovery=is_recovery)
                 
             conn.close()
             
