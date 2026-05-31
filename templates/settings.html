@@ -52,9 +52,49 @@
                 </div>
             </div>
             
+            <div class="mb-3">
+                <label class="form-label">{{ _('Expected Audio Languages') }}</label>
+                <input type="text" id="target_audio_languages" class="form-control" placeholder="eng, nor, jpn" value="{{ settings.get('target_audio_languages', '') }}">
+                <div class="form-text">{{ _('Leave empty to disable audio language checking. Separate multiple languages with commas.') }}</div>
+            </div>
+            
             <div class="mb-4">
                 <label class="form-label">{{ _('Priority Title') }}</label>
                 <input type="text" id="priority_title" class="form-control" placeholder="e.g. Futurama" value="{{ settings.get('priority_title', '') }}">
+            </div>
+
+            <hr class="my-4">
+            <h5 class="text-primary mb-3">📚 {{ _('Per-Library Settings') }}</h5>
+            <p class="text-muted small mb-3">{{ _('Customize subtitle and audio language verification for each library. Leave empty to use the global defaults above.') }}</p>
+            
+            <div class="mb-3">
+                <label class="form-label fw-bold">{{ _('Select Library to Configure') }}</label>
+                <select id="per-library-selector" class="form-select" onchange="loadLibrarySettings()">
+                    <option value="">{{ _('-- Choose a library --') }}</option>
+                </select>
+            </div>
+
+            <div id="library-settings-panel" class="d-none card p-3 bg-info bg-opacity-10 mb-4">
+                <h6 class="text-info mb-3">
+                    <span id="selected-lib-name"></span>
+                    <small class="text-muted">({{ _('Library-specific overrides') }})</small>
+                </h6>
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">{{ _('Subtitle Languages') }}</label>
+                        <input type="text" id="lib_target_languages" class="form-control" placeholder="e.g., jpn, eng">
+                        <div class="form-text">{{ _('Leave empty to use global default') }}</div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">{{ _('Expected Audio Languages') }}</label>
+                        <input type="text" id="lib_target_audio_languages" class="form-control" placeholder="e.g., jpn, eng">
+                        <div class="form-text">{{ _('Leave empty to use global default') }}</div>
+                    </div>
+                </div>
+                
+                <button type="button" class="btn btn-sm btn-info" onclick="saveLibrarySettings()">{{ _('Save Library Settings') }}</button>
+                <div id="library-settings-result" class="mt-2"></div>
             </div>
 
             <hr class="my-4">
@@ -111,7 +151,25 @@
                 <input type="text" id="discord_userid" class="form-control" placeholder="123456789012345678" value="{{ settings.get('discord_userid', '') }}">
             </div>
 
-            <div class="card bg-secondary bg-opacity-10 p-3 mb-4">
+            <hr class="my-4">
+            <h5 class="text-primary mb-3">🔔 {{ _('ntfy Notifications') }}</h5>
+            
+            <div class="mb-3">
+                <label class="form-label">{{ _('ntfy Server URL') }}</label>
+                <input type="text" id="ntfy_server_url" class="form-control" placeholder="https://ntfy.sh" value="{{ settings.get('ntfy_server_url', 'https://ntfy.sh') }}">
+                <div class="form-text">{{ _('Use https://ntfy.sh for the public server, or enter your self-hosted URL.') }}</div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">{{ _('ntfy Topic') }}</label>
+                <input type="text" id="ntfy_topic" class="form-control" placeholder="your-topic-name" value="{{ settings.get('ntfy_topic', '') }}">
+                <div class="form-text"><a href="https://ntfy.sh" target="_blank" class="link-info">{{ _('Create a topic on ntfy.sh') }}</a> - {{ _('Choose any topic name (e.g., findrr-alerts)') }}</div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">{{ _('ntfy Access Token (Optional)') }}</label>
+                <input type="text" id="ntfy_token" class="form-control" placeholder="Leave empty for public topic" value="{{ settings.get('ntfy_token', '') }}">
+                <div class="form-text">{{ _('Required only if your topic is password-protected') }}</div>
+            </div>
                 <label class="form-label fw-bold mb-3">{{ _('Notification Rules') }}</label>
                 
                 <div class="form-check form-switch mb-3">
@@ -124,9 +182,14 @@
                     <label class="form-check-label" for="notify_on_failure">❌ {{ _('Summary (Faults)') }}</label>
                 </div>
 
-                <div class="form-check form-switch mb-2">
+                <div class="form-check form-switch mb-3">
                     <input class="form-check-input" type="checkbox" id="notify_on_success" {% if settings.get('notify_on_success') %}checked{% endif %}>
                     <label class="form-check-label" for="notify_on_success">✅ {{ _('Summary (Success)') }}</label>
+                </div>
+
+                <div class="form-check form-switch mb-2">
+                    <input class="form-check-input" type="checkbox" id="notify_audio_mismatch" {% if settings.get('notify_audio_mismatch') %}checked{% endif %}>
+                    <label class="form-check-label" for="notify_audio_mismatch">🎵 {{ _('Audio Language Mismatch (ntfy)') }}</label>
                 </div>
             </div>
 
@@ -155,6 +218,7 @@
         let availableLibraries = [];
         let savedLibraries = {{ settings.get('libraries', []) | tojson }};
         let savedCanaryFile = {{ settings.get('canary_files', []) | tojson }};
+        let perLibrarySettings = {{ settings.get('per_library_settings', {}) | tojson }};
 
         function renderCanaryList() {
             const list = document.getElementById('canary-list');
@@ -251,8 +315,73 @@
                                 <label class="form-check-label" for="lib-${lib}">${lib}</label>
                             </div>`;
                     });
+                    
+                    // Populate per-library selector
+                    const selector = document.getElementById('per-library-selector');
+                    selector.innerHTML = '<option value="">-- Choose a library --</option>';
+                    data.libraries.forEach(lib => {
+                        const option = document.createElement('option');
+                        option.value = lib;
+                        option.textContent = lib;
+                        selector.appendChild(option);
+                    });
                 } else {
                     resDiv.innerHTML = `<div class="alert alert-danger">${i18n.connection_error}: ${data.error}</div>`;
+                }
+            });
+        }
+
+        function loadLibrarySettings() {
+            const selector = document.getElementById('per-library-selector');
+            const libName = selector.value;
+            const panel = document.getElementById('library-settings-panel');
+            
+            if (!libName) {
+                panel.classList.add('d-none');
+                return;
+            }
+            
+            panel.classList.remove('d-none');
+            document.getElementById('selected-lib-name').textContent = libName;
+            
+            // Load saved settings for this library (or empty if none exist)
+            const libSettings = perLibrarySettings[libName] || {};
+            document.getElementById('lib_target_languages').value = libSettings.target_languages || '';
+            document.getElementById('lib_target_audio_languages').value = libSettings.target_audio_languages || '';
+        }
+
+        function saveLibrarySettings() {
+            const libName = document.getElementById('per-library-selector').value;
+            if (!libName) {
+                alert('Please select a library');
+                return;
+            }
+            
+            const targetLangs = document.getElementById('lib_target_languages').value;
+            const targetAudioLangs = document.getElementById('lib_target_audio_languages').value;
+            
+            fetch('/api/save_library_settings', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    library_name: libName,
+                    target_languages: targetLangs,
+                    target_audio_languages: targetAudioLangs
+                })
+            })
+            .then(r => r.json())
+            .then(data => {
+                const resultDiv = document.getElementById('library-settings-result');
+                if (data.success) {
+                    resultDiv.innerHTML = `<div class="alert alert-success alert-dismissible fade show py-1" role="alert">{{ _('Settings saved for') }} ${libName}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>`;
+                    // Update the in-memory copy
+                    if (!perLibrarySettings[libName]) {
+                        perLibrarySettings[libName] = {};
+                    }
+                    perLibrarySettings[libName].target_languages = targetLangs;
+                    perLibrarySettings[libName].target_audio_languages = targetAudioLangs;
+                } else {
+                    resultDiv.innerHTML = `<div class="alert alert-danger py-1">${i18n.connection_error}: ${data.error}</div>`;
                 }
             });
         }
@@ -270,10 +399,15 @@
                 discord_webhook: document.getElementById('discord_webhook').value,
                 priority_title: document.getElementById('priority_title').value,
                 target_languages: document.getElementById('target_languages').value,
+                target_audio_languages: document.getElementById('target_audio_languages').value,
                 discord_userid: document.getElementById('discord_userid').value,
+                ntfy_server_url: document.getElementById('ntfy_server_url').value,
+                ntfy_topic: document.getElementById('ntfy_topic').value,
+                ntfy_token: document.getElementById('ntfy_token').value,
                 notify_immediate: document.getElementById('notify_immediate').checked,
                 notify_on_failure: document.getElementById('notify_on_failure').checked,
                 notify_on_success: document.getElementById('notify_on_success').checked,
+                notify_audio_mismatch: document.getElementById('notify_audio_mismatch').checked,
                 auth_disabled: document.getElementById('auth_disabled').checked
             };
 

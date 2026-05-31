@@ -14,6 +14,8 @@
         .progress { height: 25px; }
         .sub-badge { background-color: rgba(var(--bs-info-rgb), 0.2); color: var(--bs-info); padding: 5px 10px; border-radius: 4px; margin-right: 5px; display: inline-block; margin-top: 5px; border: 1px solid rgba(var(--bs-info-rgb), 0.3);}
         .sub-badge-ignored { background-color: rgba(var(--bs-secondary-rgb), 0.2); color: var(--bs-secondary); padding: 5px 10px; border-radius: 4px; margin-right: 5px; display: inline-block; margin-top: 5px; font-style: italic; border: 1px solid rgba(var(--bs-secondary-rgb), 0.3);}
+        .audio-badge-expected { background-color: rgba(var(--bs-success-rgb), 0.2); color: var(--bs-success); padding: 5px 10px; border-radius: 4px; margin-right: 5px; display: inline-block; margin-top: 5px; border: 1px solid rgba(var(--bs-success-rgb), 0.3);}
+        .audio-badge-unexpected { background-color: rgba(var(--bs-danger-rgb), 0.2); color: var(--bs-danger); padding: 5px 10px; border-radius: 4px; margin-right: 5px; display: inline-block; margin-top: 5px; border: 1px solid rgba(var(--bs-danger-rgb), 0.3);}
         .history-item { font-size: 0.9em; border-left: 4px solid transparent; }
         .history-pass { border-left-color: var(--bs-success); }
         .history-fail { border-left-color: var(--bs-danger); }
@@ -44,7 +46,12 @@
             <div class="card p-3 p-md-4 mb-4 shadow-sm">
                 <h4 id="status-text">{{ _('Status') }}: {{ _('Loading') }}...</h4>
                 <div class="d-flex flex-column flex-md-row justify-content-between mb-2">
-                    <p class="mb-1 fw-bold text-truncate" id="current-file" style="max-width: 100%;">...</p>
+                    <div class="d-flex flex-column flex-grow-1">
+                        <p class="mb-1 fw-bold text-truncate" id="current-file" style="max-width: 100%;">...</p>
+                        <p class="mb-1 small text-secondary" id="current-library">
+                            <span id="library-badge"></span>
+                        </p>
+                    </div>
                     <p class="mb-1 text-info" id="current-activity">...</p>
                 </div>
                 <div class="progress mb-3">
@@ -80,7 +87,15 @@
             </div>
 
             <div class="row mb-4">
-                <div class="col-md-6 mb-3">
+                <div class="col-md-4 mb-3">
+                    <div class="card p-3 h-100">
+                        <h6 class="text-info">🎵 {{ _('Audio Languages Checked') }}</h6>
+                        <div id="audio-stats-container">
+                            <span class="text-muted small">{{ _('None yet') }}.</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-3">
                     <div class="card p-3 h-100">
                         <h6 class="text-success">✅ {{ _('Verified Subtitles') }}</h6>
                         <div id="subtitle-stats-container">
@@ -88,7 +103,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-md-6 mb-3">
+                <div class="col-md-4 mb-3">
                     <div class="card p-3 h-100">
                         <h6 class="text-secondary">🚫 {{ _('Ignored Subtitles') }}</h6>
                         <div id="ignored-stats-container">
@@ -122,6 +137,7 @@
             'failed': '{{ _("Failed") }}',
             'skipped': '{{ _("Passed & Cached") }}',
             'no_matching': '{{ _("No matching subtitles found") }}',
+            'no_audio': '{{ _("No audio languages scanned") }}',
             'no_ignored': '{{ _("No subtitles ignored yet") }}',
             'issues_found': '{{ _("Issues Found") }}',
             'clean': '{{ _("Clean") }}',
@@ -156,6 +172,14 @@
                     document.getElementById('current-file').innerText = data.current_file || i18n.waiting;
                     document.getElementById('current-activity').innerText = data.current_activity || '';
                     
+                    // Display current library being scanned
+                    const libBadge = document.getElementById('library-badge');
+                    if (data.current_library) {
+                        libBadge.innerHTML = `<span class="badge bg-info">${data.current_library}</span>`;
+                    } else {
+                        libBadge.innerHTML = '';
+                    }
+                    
                     const bar = document.getElementById('progress-bar');
                     bar.style.width = data.progress + '%';
                     bar.innerText = data.progress + '%';
@@ -179,6 +203,36 @@
                         }
                     }
 
+                    function renderAudioStats(expectedData, unexpectedData) {
+                        const container = document.getElementById('audio-stats-container');
+                        const hasExpected = Object.keys(expectedData || {}).length > 0;
+                        const hasUnexpected = Object.keys(unexpectedData || {}).length > 0;
+                        
+                        if (!hasExpected && !hasUnexpected) {
+                            container.innerHTML = `<span class="text-muted small">${i18n.no_audio}</span>`;
+                            return;
+                        }
+                        
+                        container.innerHTML = '';
+                        
+                        // Render expected (green) badges
+                        if (hasExpected) {
+                            const sortedExpected = Object.entries(expectedData).sort((a,b) => b[1] - a[1]);
+                            for (const [lang, count] of sortedExpected) {
+                                container.innerHTML += `<span class="audio-badge-expected">${lang}: <b>${count}</b></span>`;
+                            }
+                        }
+                        
+                        // Render unexpected (red) badges
+                        if (hasUnexpected) {
+                            const sortedUnexpected = Object.entries(unexpectedData).sort((a,b) => b[1] - a[1]);
+                            for (const [lang, count] of sortedUnexpected) {
+                                container.innerHTML += `<span class="audio-badge-unexpected">${lang}: <b>${count}</b></span>`;
+                            }
+                        }
+                    }
+                    
+                    renderAudioStats(data.audio_stats, data.audio_stats_unexpected);
                     renderBadges('subtitle-stats-container', data.subtitle_stats, 'sub-badge', i18n.no_matching);
                     renderBadges('ignored-stats-container', data.ignored_subtitle_stats, 'sub-badge-ignored', i18n.no_ignored);
 

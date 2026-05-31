@@ -18,6 +18,7 @@ state = {
     'status': 'Idle',
     'current_file': '',
     'current_activity': '',
+    'current_library': '',
     'progress': 0,
     'total_items': 0,
     'scanned': 0,
@@ -26,6 +27,8 @@ state = {
     'skipped': 0,
     'subtitle_stats': {},
     'ignored_subtitle_stats': {},
+    'audio_stats': {},
+    'audio_stats_unexpected': {},
     'failures': [],
     'last_scan_time': None
 }
@@ -44,8 +47,22 @@ def init_db():
                     file_size INTEGER,
                     mtime REAL,
                     last_checked TIMESTAMP,
-                    status TEXT
+                    status TEXT,
+                    audio_status TEXT DEFAULT 'OK',
+                    library_name TEXT
                 )''')
+    # Add audio_status column to existing tables (backward compatibility)
+    try:
+        c.execute("ALTER TABLE file_checks ADD COLUMN audio_status TEXT DEFAULT 'OK'")
+    except:
+        pass  # Column already exists
+    
+    # Add library_name column to existing tables (backward compatibility)
+    try:
+        c.execute("ALTER TABLE file_checks ADD COLUMN library_name TEXT")
+    except:
+        pass  # Column already exists
+    
     c.execute('''CREATE TABLE IF NOT EXISTS scan_history (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     timestamp TEXT,
@@ -114,19 +131,19 @@ def get_file_fingerprint(item, part):
 
 def should_skip(conn, fingerprint):
     c = conn.cursor()
-    c.execute("SELECT file_size, mtime, status FROM file_checks WHERE file_path=?", (fingerprint['path'],))
+    c.execute("SELECT file_size, mtime, status, audio_status FROM file_checks WHERE file_path=?", (fingerprint['path'],))
     row = c.fetchone()
     if row:
-        stored_size, stored_mtime, status = row
+        stored_size, stored_mtime, status, audio_status = row
         if stored_size == fingerprint['size'] and status == 'PASS':
             return True
     return False
 
-def update_db(conn, fingerprint, status):
+def update_db(conn, fingerprint, status, audio_status='OK', library_name=None):
     c = conn.cursor()
-    c.execute('''INSERT OR REPLACE INTO file_checks (file_path, file_size, mtime, last_checked, status)
-                 VALUES (?, ?, ?, ?, ?)''', 
-                 (fingerprint['path'], fingerprint['size'], fingerprint['mtime'], datetime.datetime.now(), status))
+    c.execute('''INSERT OR REPLACE INTO file_checks (file_path, file_size, mtime, last_checked, status, audio_status, library_name)
+                 VALUES (?, ?, ?, ?, ?, ?, ?)''', 
+                 (fingerprint['path'], fingerprint['size'], fingerprint['mtime'], datetime.datetime.now(), status, audio_status, library_name))
     conn.commit()
 
 def verify_stream(media_item, subtitle_stream=None):
@@ -284,6 +301,59 @@ def send_discord_report(settings, stats, failures, is_recovery=False):
     except Exception as e:
         print(f"Discord Error: {e}")
 
+def send_ntfy_audio_mismatch(settings, item_title, file_path, expected_audio, found_audio):
+    """
+    Send an ntfy notification when a file has audio language mismatch.
+    """
+    ntfy_topic = settings.get('ntfy_topic', '').strip()
+    if not ntfy_topic:
+        return
+    
+    # Get the server URL, defaulting to the public ntfy.sh server
+    ntfy_server = settings.get('ntfy_server_url', 'https://ntfy.sh').strip()
+    
+    # Strip any trailing slashes from the URL so we can cleanly append the topic
+    if ntfy_server.endswith('/'):
+        ntfy_server = ntfy_server[:-1]
+    
+    try:
+        url = f"{ntfy_server}/{ntfy_topic}"
+        title = "Audio Language Mismatch"
+        message = (
+            f"🎵 {item_title}\n"
+            f"Expected: {', '.join(expected_audio)}\n"
+            f"Found: {', '.join(found_audio)}\n"
+            f"File: {os.path.basename(file_path)}"
+        )
+        
+        headers = {
+            "Title": title,
+            "Priority": "high"
+        }
+        
+        # Add token if configured
+        ntfy_token = settings.get('ntfy_token', '').strip()
+        if ntfy_token:
+            headers['Authorization'] = f"Bearer {ntfy_token}"
+        
+        requests.post(url, data=message, headers=headers, timeout=10)
+        print(f"ntfy notification sent for: {item_title}")
+    except Exception as e:
+        print(f"ntfy Error: {e}")
+
+def get_library_setting(settings, library_name, setting_key, default_value):
+    """
+    Get a setting for a specific library. Falls back to global setting if per-library setting doesn't exist.
+    This maintains backward compatibility with existing configurations.
+    """
+    per_lib_settings = settings.get('per_library_settings', {})
+    if library_name in per_lib_settings:
+        lib_setting = per_lib_settings[library_name].get(setting_key)
+        if lib_setting is not None:
+            return lib_setting
+    # Fall back to global setting
+    return settings.get(setting_key, default_value)
+
 def run_scan_loop():
     while not stop_event.is_set():
         if restart_event.is_set():
@@ -310,14 +380,16 @@ def run_scan_loop():
             state['failures'] = [] 
             state['subtitle_stats'] = {} 
             state['ignored_subtitle_stats'] = {}
+            state['audio_stats'] = {}
+            state['audio_stats_unexpected'] = {}
+            state['current_library'] = ''
             
             new_discord_failures = []
             
             conn = init_db()
             plex = PlexServer(settings['plex_url'], settings['plex_token'])
             
-            lang_setting = settings.get('target_languages', 'en, eng')
-            user_langs = [x.strip().lower() for x in lang_setting.split(',') if x.strip()]
+            # Global language expansion map
             EXPANSION_MAP = {
                 'en': ['en', 'eng'],
                 'no': ['no', 'nor', 'nob', 'nno'],
@@ -330,11 +402,8 @@ def run_scan_loop():
                 'ja': ['ja', 'jpn'],
                 'zh': ['zh', 'chi', 'zho']
             }
-            target_languages = set(user_langs)
-            for code in user_langs:
-                if code in EXPANSION_MAP:
-                    target_languages.update(EXPANSION_MAP[code])
-            target_languages = list(target_languages)
+            
+            notify_audio_mismatch = settings.get('notify_audio_mismatch', False)
             
             libraries = settings.get('libraries', [])
             
@@ -343,7 +412,8 @@ def run_scan_loop():
             canary_ids = [str(x['id']) for x in canary_file]
             found_canary_ids = set()
 
-            items_to_process = []
+            # Build library-indexed items with library names
+            items_with_lib = []
             
             for lib_name in libraries:
                 if restart_event.is_set(): break 
@@ -351,36 +421,58 @@ def run_scan_loop():
                     lib = plex.library.section(lib_name)
                     if lib.type == 'show':
                         for show in lib.all():
-                            items_to_process.extend(show.episodes())
+                            for episode in show.episodes():
+                                items_with_lib.append((lib_name, episode))
                     elif lib.type == 'movie':
-                        items_to_process.extend(lib.all())
+                        for movie in lib.all():
+                            items_with_lib.append((lib_name, movie))
                 except:
                     pass
 
-            state['total_items'] = len(items_to_process)
+            state['total_items'] = len(items_with_lib)
             
             priority = settings.get('priority_title', '').strip().lower()
             if priority:
-                def priority_sort_key(item):
+                def priority_sort_key(item_tuple):
+                    lib_name, item = item_tuple
                     if item.title and priority in item.title.lower(): return 0
                     if hasattr(item, 'grandparentTitle') and item.grandparentTitle:
                         if priority in item.grandparentTitle.lower(): return 0
                     return 1
-                items_to_process.sort(key=priority_sort_key)
+                items_with_lib.sort(key=priority_sort_key)
 
-            for idx, item in enumerate(items_to_process):
+            for idx, (lib_name, item) in enumerate(items_with_lib):
                 if restart_event.is_set(): 
                     state['status'] = 'Restarting...'
                     break
                 if stop_event.is_set(): break
                 
-                state['progress'] = int((idx / max(1, len(items_to_process))) * 100)
+                state['progress'] = int((idx / max(1, len(items_with_lib))) * 100)
+                state['current_library'] = lib_name
                 display_title = item.title
                 if item.type == 'episode':
                     display_title = f"{item.grandparentTitle} - {item.seasonEpisode} - {item.title}"
                 elif item.type == 'movie':
                     display_title = f"{item.title} ({item.year})"
                 state['current_file'] = display_title
+
+                # Get per-library language settings
+                lang_setting = get_library_setting(settings, lib_name, 'target_languages', 'en, eng')
+                user_langs = [x.strip().lower() for x in lang_setting.split(',') if x.strip()]
+                target_languages = set(user_langs)
+                for code in user_langs:
+                    if code in EXPANSION_MAP:
+                        target_languages.update(EXPANSION_MAP[code])
+                target_languages = list(target_languages)
+                
+                # Get per-library audio language settings
+                audio_lang_setting = get_library_setting(settings, lib_name, 'target_audio_languages', '')
+                user_audio_langs = [x.strip().lower() for x in audio_lang_setting.split(',') if x.strip()]
+                target_audio_languages = set(user_audio_langs)
+                for code in user_audio_langs:
+                    if code in EXPANSION_MAP:
+                        target_audio_languages.update(EXPANSION_MAP[code])
+                target_audio_languages = list(target_audio_languages)
 
                 for media in item.media:
                     for part in media.parts:
@@ -391,13 +483,14 @@ def run_scan_loop():
                         file_changed = False
                         
                         c = conn.cursor()
-                        c.execute("SELECT file_size, mtime, status FROM file_checks WHERE file_path=?", (fingerprint['path'],))
+                        c.execute("SELECT file_size, mtime, status, audio_status FROM file_checks WHERE file_path=?", (fingerprint['path'],))
                         row = c.fetchone()
                         previous_status = row[2] if row else None
+                        previous_audio_status = row[3] if row else 'OK'
                         
                         # Check for file changes for ALL files, not just canaries
                         if row:
-                            stored_size, stored_mtime, _ = row
+                            stored_size, stored_mtime, status, audio_status_old = row
                             if stored_size != fingerprint['size'] or stored_mtime != fingerprint['mtime']:
                                 file_changed = True
                         
@@ -417,8 +510,50 @@ def run_scan_loop():
                         success = verify_stream(item)
                         reason = "Video Transcode Failed"
 
+                        audio_status = 'OK'
                         if success:
                             item.reload()
+                            
+                            # Check audio language if configured
+                            if target_audio_languages:
+                                audio_streams = item.audioStreams()
+                                found_audio_langs = set()
+                                for audio in audio_streams:
+                                    audio_lang = audio.languageCode or 'unknown'
+                                    found_audio_langs.add(audio_lang)
+                                
+                                # Track expected vs unexpected audio languages
+                                for audio_lang in found_audio_langs:
+                                    if audio_lang in target_audio_languages:
+                                        state['audio_stats'][audio_lang] = state['audio_stats'].get(audio_lang, 0) + 1
+                                    else:
+                                        state['audio_stats_unexpected'][audio_lang] = state['audio_stats_unexpected'].get(audio_lang, 0) + 1
+                                
+                                # Check if we should flag an audio mismatch
+                                if notify_audio_mismatch:
+                                    # Check if AT LEAST ONE expected language is present
+                                    has_expected = any(lang in target_audio_languages for lang in found_audio_langs)
+                                    
+                                    # Mismatch ONLY if we found audio AND none of it is expected
+                                    if found_audio_langs and not has_expected:
+                                        audio_status = 'MISMATCH'
+                                        
+                                        # Only notify on NEW audio mismatches (not previously detected)
+                                        is_new_audio_mismatch = (previous_audio_status != 'MISMATCH')
+                                        if is_new_audio_mismatch:
+                                            expected_display = [lang for lang in target_audio_languages if lang != 'unknown']
+                                            found_display = list(found_audio_langs)
+                                            send_ntfy_audio_mismatch(
+                                                settings,
+                                                display_title,
+                                                part.file,
+                                                expected_display or target_audio_languages,
+                                                found_display
+                                            )
+                                            print(f"   [AUDIO MISMATCH] {display_title} - Expected: {target_audio_languages}, Found: {found_audio_langs}")
+                                        else:
+                                            print(f"   [AUDIO MISMATCH] {display_title} - Expected: {target_audio_languages}, Found: {found_audio_langs} (Known)")
+                            
                             for sub in item.subtitleStreams():
                                 lang_code = sub.languageCode or 'unknown'
                                 if lang_code in target_languages:
@@ -433,7 +568,7 @@ def run_scan_loop():
                                     state['ignored_subtitle_stats'][lang_code] = state['ignored_subtitle_stats'].get(lang_code, 0) + 1
 
                         status = 'PASS' if success else 'FAIL'
-                        update_db(conn, fingerprint, status)
+                        update_db(conn, fingerprint, status, audio_status, lib_name)
 
                         if success:
                             state['passed'] += 1

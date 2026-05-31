@@ -314,10 +314,58 @@ def save_settings_route():
     if 'auth_disabled' not in new_data and 'auth_disabled' in old_settings:
         new_data['auth_disabled'] = old_settings['auth_disabled']
     
+    # Preserve per_library_settings if not explicitly being modified
+    if 'per_library_settings' not in new_data and 'per_library_settings' in old_settings:
+        new_data['per_library_settings'] = old_settings['per_library_settings']
+    
     save_settings(new_data)
     scanner.restart_event.set()
     
     return jsonify({'success': True})
+
+@app.route('/api/save_library_settings', methods=['POST'])
+@optional_login_required
+def save_library_settings():
+    """Save per-library subtitle and audio language settings."""
+    data = request.json
+    library_name = data.get('library_name')
+    target_languages = data.get('target_languages', '')
+    target_audio_languages = data.get('target_audio_languages', '')
+    
+    if not library_name:
+        return jsonify({'success': False, 'error': 'Library name is required'}), 400
+    
+    settings = load_settings()
+    
+    # Initialize per_library_settings if it doesn't exist
+    if 'per_library_settings' not in settings:
+        settings['per_library_settings'] = {}
+    
+    # Initialize library settings if it doesn't exist
+    if library_name not in settings['per_library_settings']:
+        settings['per_library_settings'][library_name] = {}
+    
+    # Update the settings
+    settings['per_library_settings'][library_name]['target_languages'] = target_languages
+    settings['per_library_settings'][library_name]['target_audio_languages'] = target_audio_languages
+    
+    save_settings(settings)
+    scanner.restart_event.set()
+    
+    return jsonify({'success': True})
+
+@app.route('/api/get_library_settings/<library_name>', methods=['GET'])
+@optional_login_required
+def get_library_settings(library_name):
+    """Get per-library subtitle and audio language settings."""
+    settings = load_settings()
+    per_lib_settings = settings.get('per_library_settings', {})
+    lib_settings = per_lib_settings.get(library_name, {})
+    
+    return jsonify({
+        'target_languages': lib_settings.get('target_languages', ''),
+        'target_audio_languages': lib_settings.get('target_audio_languages', '')
+    })
 
 @app.route('/api/change_password', methods=['POST'])
 @optional_login_required
