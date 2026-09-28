@@ -567,6 +567,24 @@ def run_scan_loop():
                                 else:
                                     state['ignored_subtitle_stats'][lang_code] = state['ignored_subtitle_stats'].get(lang_code, 0) + 1
 
+                        # Double-check transient failures before reporting
+                        if not success:
+                            retry_delay = settings.get('double_check_seconds', 30)
+                            print(f"   [DOUBLE-CHECK] Waiting {retry_delay}s before rechecking {display_title}")
+                            time.sleep(retry_delay)
+                            retry_success = verify_stream(item)
+                            retry_reason = "Video Transcode Failed"
+                            if retry_success:
+                                for sub in item.subtitleStreams():
+                                    lang_code = sub.languageCode or 'unknown'
+                                    if lang_code in target_languages:
+                                        if not verify_stream(item, subtitle_stream=sub):
+                                            retry_success = False
+                                            retry_reason = f"Subtitle Failed: {sub.language}"
+                                            break
+                            if retry_success:
+                                success = True
+                                reason = ""
                         status = 'PASS' if success else 'FAIL'
                         update_db(conn, fingerprint, status, audio_status, lib_name)
 
@@ -616,7 +634,7 @@ def run_scan_loop():
                 
                 # Check for Missing Canary Files
                 missing_ids = set(canary_ids) - found_canary_ids
-                if missing_ids and len(items_to_process) > 0: # Ensure scan actually ran
+                if missing_ids and len(items_with_lib) > 0: # Ensure scan actually ran
                     missing_titles = []
                     for m_id in missing_ids:
                         # Find title from settings

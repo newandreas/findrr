@@ -49,6 +49,10 @@
                 <div class="col-md-6 mb-3">
                     <label class="form-label">{{ _('Scan Interval (Seconds)') }}</label>
                     <input type="number" id="scan_interval" class="form-control" value="{{ settings.get('scan_interval', 3600) }}">
+                    <div class="mb-3">
+                        <label class="form-label">{{ _('Double‑Check Delay (seconds)') }}</label>
+                        <input type="number" id="double_check_seconds" class="form-control" value="{{ settings.get('double_check_seconds', 30) }}">
+                    </div>
                 </div>
             </div>
             
@@ -396,6 +400,7 @@
                 libraries: selectedLibs,
                 canary_files: savedCanaryFile,
                 scan_interval: parseInt(document.getElementById('scan_interval').value),
+                double_check_seconds: parseInt(document.getElementById('double_check_seconds').value),
                 discord_webhook: document.getElementById('discord_webhook').value,
                 priority_title: document.getElementById('priority_title').value,
                 target_languages: document.getElementById('target_languages').value,
